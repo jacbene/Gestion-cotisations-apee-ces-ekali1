@@ -10,6 +10,139 @@ const nomsMois = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
+// --- Extrait: intégration API dans script.js ---
+
+// Assurez-vous que api.js est chargé (window.api)
+async function chargerPaiements() {
+  if (window.api) {
+    try {
+      // si online -> charger depuis serveur (si token présent)
+      if (navigator.onLine) {
+        const data = await window.api.apiFetch('/paiements');
+        paiements = data.map(p => ({
+          id: p.id,
+          nomParent: p.parent ? p.parent.nom : '',
+          telephone: p.parent ? p.parent.telephone : '',
+          adresse: p.parent ? p.parent.adresse : '',
+          eleves: (p.eleves || []).map(e => ({ id: e.id, nom: e.nom, classe: e.classe })),
+          montantTotal: p.montant_total || p.montantTotal || 0,
+          montantVerse: p.montant_verse || p.montantVerse || 0,
+          reste: p.reste || 0,
+          observations: p.observations || '',
+          datePaiement: p.date_paiement || p.datePaiement || ''
+        }));
+        localStorage.setItem('apee_paiements', JSON.stringify(paiements));
+      } else {
+        const saved = localStorage.getItem('apee_paiements');
+        paiements = saved ? JSON.parse(saved) : [];
+      }
+    } catch (err) {
+      console.warn('Erreur chargement API, fallback local', err);
+      const saved = localStorage.getItem('apee_paiements');
+      paiements = saved ? JSON.parse(saved) : [];
+    }
+  } else {
+    // fallback: comportement existant (local)
+    const saved = localStorage.getItem('apee_paiements');
+    paiements = saved ? JSON.parse(saved) : [];
+  }
+
+  const tbody = document.querySelector('#tableau-paiements tbody');
+  tbody.innerHTML = '';
+  paiements.forEach(p => afficherPaiementDansTableau(p));
+  afficherDerniersPaiements();
+  mettreAJourBudget();
+}
+
+// Remplacer/envelopper l'enregistrement de paiement
+async function enregistrerPaiement() {
+  // validation existante...
+  // construire objet paiement (comme dans l'ancien code)
+  const paiement = {
+    // ... mêmes champs que dans le code original ...
+    nomParent: document.getElementById('nom-parent').value.trim(),
+    telephone: document.getElementById('telephone').value.trim(),
+    adresse: document.getElementById('adresse').value.trim(),
+    eleves: [...eleves],
+    montantTotal: (function() { return parseInt((document.getElementById('montant-total').value || '0').replace(/\D/g,'')) || (eleves.length * 12500); })(),
+    montantVerse: parseFloat(document.getElementById('montant-verse').value.trim()) || 0,
+    reste: 0,
+    observations: document.getElementById('observations').value.trim(),
+    datePaiement: (new Date()).toLocaleDateString('fr-FR')
+  };
+  paiement.reste = paiement.montantTotal - paiement.montantVerse;
+
+  if (navigator.onLine && window.api) {
+    try {
+      // utilise token via apiFetch (window.api.apiFetch)
+      const payload = {
+        parent: { nom: paiement.nomParent, telephone: paiement.telephone, adresse: paiement.adresse },
+        eleves: paiement.eleves.map(e => ({ nom: e.nom, classe: e.classe })),
+        montantTotal: paiement.montantTotal,
+        montantVerse: paiement.montantVerse,
+        reste: paiement.reste,
+        observations: paiement.observations,
+        datePaiement: new Date().toISOString().slice(0,10)
+      };
+      const serverResp = await window.api.apiFetch('/paiements', { method: 'POST', body: JSON.stringify(payload) });
+      // ajouter en local et update UI
+      paiements.push({
+        id: serverResp.id,
+        nomParent: serverResp.parent.nom,
+        telephone: serverResp.parent.telephone,
+        adresse: serverResp.parent.adresse,
+        eleves: (serverResp.eleves || []).map(e => ({ id: e.id, nom: e.nom, classe: e.classe })),
+        montantTotal: serverResp.montant_total || serverResp.montantTotal,
+        montantVerse: serverResp.montant_verse || serverResp.montantVerse,
+        reste: serverResp.reste,
+        observations: serverResp.observations,
+        datePaiement: serverResp.date_paiement || serverResp.datePaiement
+      });
+      localStorage.setItem('apee_paiements', JSON.stringify(paiements));
+      afficherPaiementDansTableau(paiements[paiements.length - 1]);
+      afficherDerniersPaiements();
+      mettreAJourBudget();
+      alert('Paiement enregistré sur le serveur.');
+    } catch (err) {
+      console.warn('Enregistrement serveur échoué, mise en queue', err);
+      window.api.pushToSyncQueue({ type: 'create_payment', payload: paiement });
+      paiement.id = Date.now();
+      paiements.push(paiement);
+      localStorage.setItem('apee_paiements', JSON.stringify(paiements));
+      afficherPaiementDansTableau(paiement);
+      alert('Hors-ligne : paiement enregistré localement et mis en file d\'attente.');
+    }
+  } else {
+    // offline
+    if (window.api) window.api.pushToSyncQueue({ type: 'create_payment', payload: paiement });
+    paiement.id = Date.now();
+    paiements.push(paiement);
+    localStorage.setItem('apee_paiements', JSON.stringify(paiements));
+    afficherPaiementDansTableau(paiement);
+    alert('Hors-ligne : paiement enregistré localement et mis en file d\'attente.');
+  }
+  reinitialiserFormulaire();
+}
+
+// Réseaux: notifier online/offline (utilise l'élément #pwa-status)
+function updateNetworkStatus() {
+  const statusEl = document.getElementById('pwa-status');
+  const msg = document.getElementById('pwa-message');
+  if (!statusEl || !msg) return;
+  if (navigator.onLine) {
+    msg.textContent = 'Connexion réseau : en ligne';
+    statusEl.style.display = 'block';
+    statusEl.style.backgroundColor = '#e8f5e9';
+    setTimeout(() => statusEl.style.display = 'none', 2500);
+  } else {
+    msg.textContent = 'Mode hors ligne - Les données sont sauvegardées localement';
+    statusEl.style.display = 'block';
+    statusEl.style.backgroundColor = '#fff3cd';
+  }
+}
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+document.addEventListener('DOMContentLoaded', updateNetworkStatus);
 // Ajout des fonctionnalités PWA au début du fichier
 document.addEventListener('DOMContentLoaded', function() {
     // Vérification de la connexion
