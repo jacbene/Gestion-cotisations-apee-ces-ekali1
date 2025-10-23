@@ -842,7 +842,7 @@ function envoyerSMS(tel, nom, montant, solde) {
         }
        reste = montantTotal - montantVerse;
     }
-    const message = `APEE EKALI 1 - Récap. ${nomParent}: ${montantVerse.toLocaleString('fr-FR')} FCFA versés, ${reste.toLocaleString('fr-FR')} FCFA restants. Merci !`;
+    const message = `APEE CES EKALI 1 - Récap. ${nomParent}: ${montantVerse.toLocaleString('fr-FR')} FCFA versés, ${reste.toLocaleString('fr-FR')} FCFA restants. Merci !`;
     
     alert(`SMS serait envoyé au ${telephone}:\n\n${message}`);
 }
@@ -876,7 +876,7 @@ function afficherRecap() {
         return;
     }
     
-    let recap = `RÉCAPITULATIF - APEE EKALI 1\n\n`;
+    let recap = `RÉCAPITULATIF - APEE CES EKALI 1\n\n`;
     recap += `Parent: ${nomParent}\n`;
     recap += `Téléphone: ${telephone}\n\n`;
     
@@ -1088,7 +1088,7 @@ function imprimerRecap() {
             </style>
         </head>
         <body>
-            <h1 style="text-align: center;">Récapitulatif des Paiements - APEE EKALI 1</h1>
+            <h1 style="text-align: center;">Récapitulatif des Paiements - APEE CES EKALI 1</h1>
             <p style="text-align: center;">Date de génération: ${new Date().toLocaleDateString()}</p>
             ${contenu}
         </body>
