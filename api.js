@@ -8,7 +8,7 @@
 (function (window) {
   const ORIGIN = window.location.origin;
   // If frontend is served by the backend, use same origin + /api
-  const API_BASE = (ORIGIN && ORIGIN !== 'null') ? ORIGIN + '/api' : 'http://localhost:3000/api';
+  const API_BASE = (ORIGIN && ORIGIN !== 'null') ? ORIGIN + '/api' : 'https://gestion-cotisations-apee-ces-ekali1.netlify.app/index.html/api';
 
   function getToken() {
     return localStorage.getItem('apee_jwt') || null;
