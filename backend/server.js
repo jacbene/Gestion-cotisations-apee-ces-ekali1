@@ -28,6 +28,12 @@ const db = new Database(DB_FILE);
 db.exec('PRAGMA foreign_keys = ON;');
 db.exec(INIT_SQL);
 
+// JWT Secret Check
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'dev-secret-change')) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined or is too weak in production.');
+    process.exit(1);
+}
+
 // Twilio client (if configured)
 let twilioClient = null;
 if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {

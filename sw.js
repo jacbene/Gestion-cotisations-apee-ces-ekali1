@@ -1,82 +1,69 @@
-const CACHE_NAME = 'apee-ekali1-v1.2';
+const CACHE_NAME = 'apee-ekali-cache-v1';
 const urlsToCache = [
-  './',
-  './index.html',
-  './style.css',
-  './api.js',
-  './script.js',
-  './manifest.json',
-  './icons/icon-72x72.png',
-  './icons/icon-192x192.png',
-  './icons/icon-512x512.png'
+    '/',
+    '/index.html',
+    '/style.css',
+    '/script.js',
+    '/manifest.json',
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png'
 ];
 
-// Installation du Service Worker
-self.addEventListener('install', function(event) {
-  console.log('Service Worker: Installation en cours');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) {
-        console.log('Service Worker: Mise en cache des ressources');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                console.log('Opened cache');
+                return cache.addAll(urlsToCache);
+            })
+    );
 });
 
-// Activation du Service Worker
-self.addEventListener('activate', function(event) {
-  console.log('Service Worker: Activation');
-  event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Suppression de l\'ancien cache', cacheName);
-            return caches.delete(cacheName);
-          }
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => {
+                // Cache hit - return response
+                if (response) {
+                    return response;
+                }
+
+                return fetch(event.request).then(
+                    function(response) {
+                        // Check if we received a valid response
+                        if(!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+
+                        // IMPORTANT: Clone the response. A response is a stream
+                        // and because we want the browser to consume the response
+                        // as well as the cache consuming the response, we need
+                        // to clone it so we have two streams.
+                        var responseToCache = response.clone();
+
+                        caches.open(CACHE_NAME)
+                            .then(function(cache) {
+                                cache.put(event.request, responseToCache);
+                            });
+
+                        return response;
+                    }
+                );
+            })
+    );
+});
+
+self.addEventListener('activate', event => {
+    var cacheWhitelist = [CACHE_NAME];
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
         })
-      );
-    })
-  );
-  return self.clients.claim();
+    );
 });
-
-// Interception des requêtes
-self.addEventListener('fetch', function(event) {
-  if (event.request.url.startsWith('chrome-extension://')) {
-    return;
-  }
-  
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        // Retourne la ressource en cache ou fait une requête réseau
-        if (response) {
-          return response;
-        }
-        
-        return fetch(event.request).then(function(response) {
-          // Vérifie si la réponse est valide
-          if(!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          
-          // Clone la réponse pour la mettre en cache
-          var responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then(function(cache) {
-              cache.put(event.request, responseToCache);
-            });
-          
-          return response;
-        });
-      })
-      .catch(function() {
-        // En cas d'échec, on peut retourner une page offline personnalisée
-        return caches.match('./index.html');
-      })
-  );
-});
-

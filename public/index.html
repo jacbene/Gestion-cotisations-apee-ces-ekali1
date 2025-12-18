@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Cotisations - APEE CES D'EKALI 1</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="APEE EKALI1">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="icons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="container">
+        <header class="header no-print">
+            <h1 class="header__title">APEE DU CES D'EKALI 1</h1>
+            <h2 class="header__subtitle">GESTION DES COTISATIONS DES PARENTS</h2>
+            <div class="header__date-range">
+                <div class="date-range__item">Semaine du: <input type="date" id="date-debut"></div>
+                <div class="date-range__item">au: <input type="date" id="date-fin"></div>
+            </div>
+
+            <!-- Indicateur de statut PWA -->
+            <div id="pwa-status" class="pwa-status">
+                <span id="pwa-message"></span>
+                <button id="install-button" class="pwa-button">Installer l'application</button>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="tabs no-print">
+                <button class="tab-button active" onclick="showTab('paiement')">Paiement des Cotisations</button>
+                <button class="tab-button" onclick="showTab('budget')">Impact sur le Budget</button>
+                <button class="tab-button" onclick="showTab('historique')">Historique des Paiements</button>
+            </div>
+
+            <!-- Onglet Paiement des Cotisations -->
+            <div id="paiement" class="tab-content active">
+                <!-- Section pour la gestion des fichiers -->
+                <div class="card file-management no-print">
+                    <h2 class="card__title">Gestion des Fichiers de Données</h2>
+                    <p>Exportez vos données pour les sauvegarder ou les importer sur un autre appareil.</p>
+
+                    <div class="file-buttons">
+                        <button class="file-button" onclick="exporterPaiements()">📥 Exporter les paiements</button>
+                        <button class="file-button import" onclick="importerPaiements()">📤 Importer des paiements</button>
+                        <button class="file-button backup" onclick="sauvegarderBackup()">💾 Sauvegarder Backup Complet</button>
+
+                        <input type="file" id="file-input" accept=".json" class="file-input">
+                    </div>
+
+                    <div class="file-info">
+                        <p><strong>Instructions :</strong></p>
+                        <ul>
+                            <li>Exportez les paiements pour sauvegarder les données actuelles</li>
+                            <li>Importez des paiements pour restaurer une sauvegarde</li>
+                            <li>Les fichiers sont sauvegardés au format JSON dans votre dossier de téléchargements</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card no-print">
+                    <h2 class="card__title">Informations du Parent/Tuteur</h2>
+
+                    <div id="info-parent" class="parent-info">
+                        <strong>Statut: </strong><span id="statut-parent"></span>
+                        <div id="details-parent"></div>
+                    </div>
+
+                    <div id="paiement-dette" class="paiement-dette">
+                        <strong>⚠ Paiement de dette seulement</strong>
+                        <p>Le parent existant n'a pas ajouté de nouvel élève. Le montant à payer correspond au solde précédent.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nom-parent">Nom complet du parent/tuteur *</label>
+                        <input type="text" id="nom-parent" required placeholder="Nom et prénom">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telephone">Numéro de téléphone *</label>
+                        <input type="tel" id="telephone" required placeholder="Pour l'envoi de SMS">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adresse">Adresse complète</label>
+                        <textarea id="adresse" rows="2" placeholder="Adresse postale"></textarea>
+                    </div>
+
+                    <div class="montant-info">
+                        Cotisation par élève: 12 500 FCFA
+                    </div>
+                </div>
+
+                <div class="card no-print">
+                    <h2 class="card__title">Ajouter un élève</h2>
+                    <div class="form-group">
+                        <label for="nom-eleve">Nom de l'élève *</label>
+                        <input type="text" id="nom-eleve" placeholder="Nom et prénom">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="classe">Classe de l'élève *</label>
+                        <input type="text" id="classe" placeholder="Classe">
+                    </div>
+
+                    <button onclick="ajouterEleve()">+ Ajouter cet élève</button>
+
+                    <div class="student-list">
+                        <h3>Élèves ajoutés</h3>
+                        <div id="liste-eleves">
+                            <!-- Les élèves seront ajoutés ici dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card no-print">
+                    <h2 class="card__title">Paiement</h2>
+                    <div class="form-group">
+                        <label for="montant-total">Montant total à payer</label>
+                        <input type="text" id="montant-total" readonly value="0 FCFA">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="montant-verse">Montant versé (FCFA) *</label>
+                        <input type="number" id="montant-verse" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reste-payer">Reste à payer (FCFA)</label>
+                        <input type="text" id="reste-payer" readonly value="0 FCFA">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observations">Observations</label>
+                        <textarea id="observations" rows="2" placeholder="Notes éventuelles"></textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button onclick="enregistrerPaiement()">Enregistrer le paiement</button>
+                        <button class="sms" onclick="envoyerSMS()">📱 Envoyer SMS récapitulatif</button>
+                        <button class="secondary" onclick="afficherRecap()">Afficher le récapitulatif</button>
+                        <button class="print" onclick="imprimerHistorique()">🖨️ Imprimer Historique</button>
+                        <button class="secondary" onclick="genererRecapGlobal()">📊 Récap Global</button>
+                    </div>
+                </div>
+
+                <!-- Section pour afficher les derniers paiements -->
+                <div class="card no-print">
+                    <h2 class="card__title">Derniers paiements enregistrés</h2>
+                    <div id="derniers-paiements" class="derniers-paiements">
+                        <!-- Les derniers paiements seront affichés ici -->
+                    </div>
+                    <div class="voir-plus">
+                        <button class="secondary" onclick="showTab('historique')">Voir tous les paiements</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Impact sur le Budget -->
+            <div id="budget" class="tab-content">
+                <div class="recap-header">
+                    <h2>Impact des Cotisations sur le Budget Prévisionnel</h2>
+                    <p>État des recettes provenant des cotisations des parents</p>
+                </div>
+
+                <div class="budget-stats">
+                    <div class="stat-box">
+                        <h3>Objectif de Recettes</h3>
+                        <div class="stat-value" id="objectif-recettes">1 250 000 FCFA</div>
+                        <p>Cotisations attendues (100 élèves × 12 500 FCFA)</p>
+                    </div>
+
+                    <div class="stat-box">
+                        <h3>Recettes Réalisées</h3>
+                        <div class="stat-value" id="recettes-realisees">0 FCFA</div>
+                        <p>Total des cotisations perçues</p>
+                    </div>
+
+                    <div class="stat-box">
+                        <h3>Taux de Réalisation</h3>
+                        <div class="stat-value" id="taux-realisation">0%</div>
+                        <p>Pourcentage de l'objectif atteint</p>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <h3>Progression vers l'objectif</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-bar-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">0%</div>
+                </div>
+
+                <div class="budget-impact">
+                    <h3>Détail des cotisations par mois</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mois</th>
+                                <th>Nombre de paiements</th>
+                                <th>Montant perçu</th>
+                                <th>Élèves concernés</th>
+                            </tr>
+                        </thead>
+                        <tbody id="details-mensuels">
+                            <!-- Les détails mensuels seront ajoutés ici dynamiquement -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="recap-actions">
+                    <button onclick="imprimerRapportBudget()">Imprimer le rapport budget</button>
+                    <button class="secondary" onclick="exporterRapportBudget()">Exporter les données budget</button>
+                </div>
+            </div>
+
+            <!-- Onglet Historique des Paiements -->
+            <div id="historique" class="tab-content">
+                <h2>Historique des paiements</h2>
+                <table id="tableau-paiements">
+                    <thead>
+                        <tr>
+                            <th>Parent/Tuteur</th>
+                            <th>Téléphone</th>
+                            <th>Élève(s)</th>
+                            <th>Classe(s)</th>
+                            <th>Montant versé</th>
+                            <th>Reste à payer</th>
+                            <th>Date</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Les paiements seront ajoutés ici dynamiquement -->
+                    </tbody>
+                </table>
+
+                <div class="no-print recap-actions">
+                    <button onclick="genererRecapGlobal()">Générer un récapitulatif global</button>
+                    <button onclick="exporterDonnees()">Exporter toutes les données</button>
+                </div>
+
+                <div id="recap-global" class="recap-container">
+                    <div class="recap-header">
+                        <h2>Récapitulatif Global des Paiements</h2>
+                        <p>Date de génération: <span id="date-recap"></span></p>
+                    </div>
+                    <div id="contenu-recap"></div>
+                    <div class="recap-actions">
+                        <button onclick="imprimerRecap()">Imprimer ce récapitulatif</button>
+                        <button onclick="fermerRecap()">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer no-print">
+            <div class="signature">
+                <div>Le Caissier</div>
+                <div>Le Trésorier</div>
+            </div>
+
+            <div id="instructions" class="instructions">
+                <b>Instructions d'utilisation</b>
+                <ul>
+                    <li>1. Renseignez les informations du parent (nom, téléphone, adresse)</li>
+                    <li>2. Ajoutez un ou plusieurs élèves avec le bouton "Ajouter cet élève"</li>
+                    <li>3. Le montant total est calculé automatiquement</li>
+                    <li>4. Saisissez le montant versé, le reste à payer se calcule automatiquement</li>
+                    <li>5. Cliquez sur "Enregistrer le paiement" pour sauvegarder</li>
+                    <li>6. Utilisez le bouton "Envoyer SMS" pour envoyer un récapitulatif au parent</li>
+                    <li>7. Utilisez "Imprimer Historique" pour imprimer uniquement le tableau des paiements</li>
+                    <li>8. Utilisez "Récap Global" pour générer un rapport de tous les parents</li>
+                    <li>9. Consultez l'onglet "Impact sur le Budget" pour voir l'état des recettes</li>
+                    <li>10. Utilisez le bouton 🗑️ pour supprimer un paiement indésirable</li>
+                    <li>11. Consultez la section "Derniers paiements" pour voir les enregistrements récents</li>
+                    <li>12. <strong>Nouveau</strong> : Cette application peut être installée sur votre appareil</li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
