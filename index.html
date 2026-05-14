@@ -231,7 +231,11 @@
                         </tbody>
                     </table>
                 </div>
-
+                <div class="recap-actions">
+                    <button onclick="genererPDFBudget(false)">📄 Prévisualiser PDF Budget</button>
+                    <button onclick="genererPDFBudget(true)">⬇️ Télécharger PDF Budget</button>
+                    <!-- garder les anciens boutons -->
+                </div>
                 <div class="recap-actions">
                     <button onclick="imprimerRapportBudget()">Imprimer le rapport budget</button>
                     <button class="secondary" onclick="exporterRapportBudget()">Exporter les données budget</button>
@@ -273,6 +277,16 @@
                     <div class="recap-actions">
                         <button onclick="imprimerRecap()">Imprimer ce récapitulatif</button>
                         <button onclick="fermerRecap()">Fermer</button>
+                    </div>
+                    <div class="recap-actions">
+                       <button onclick="genererPDFRecap(false)">📄 Prévisualiser PDF</button>
+                       <button onclick="genererPDFRecap(true)">⬇️ Télécharger PDF</button>
+                       <button onclick="imprimerRecap()">🖨️ Imprimer récapitulatif</button>
+                       <button onclick="fermerRecap()">Fermer</button>
+                    </div>
+                    <div class="no-print" style="margin: 10px 0;">
+                        <button onclick="genererPDFHistorique(false)">📄 Prévisualiser PDF (Historique)</button>
+                        <button onclick="genererPDFHistorique(true)">⬇️ Télécharger PDF (Historique)</button>
                     </div>
                 </div>
             </div>
