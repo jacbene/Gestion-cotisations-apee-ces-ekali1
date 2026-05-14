@@ -312,33 +312,48 @@
    // let tempStudents = [];      // [{ nom, classe }]
     //let currentParentSolde = 0;
 
+ 
     
     
     function afficherRecap() { genererRecapGlobal(); }
      
-    function genererRecapGlobal() {
+    function renderHistorique() {
+    const tbody = document.querySelector('#tableau-paiements tbody');
+    if (!tbody) return;
+    if (!payments || payments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8">Aucun paiement enregistré</td></tr>';
+        return;
+    }
+    tbody.innerHTML = payments.map(p => {
+        const studentsList = (p.students && Array.isArray(p.students)) ? p.students : [];
+        const elevesNoms = studentsList.map(s => s.nom || '?').join(', ') || '-';
+        const elevesClasses = studentsList.map(s => s.classe || '?').join(', ') || '-';
+        return `
+            <tr>
+                <td>${escapeHtml(p.parentNom)}</td>
+                <td>${escapeHtml(p.telephone)}</td>
+                <td>${escapeHtml(elevesNoms)}</td>
+                <td>${escapeHtml(elevesClasses)}</td>
+                <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
+                <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
+                <td>${escapeHtml(p.date)}</td>
+                <td class="no-print"><button onclick="supprimerPaiement(${p.id})" style="background:#dc3545;">🗑️ Supprimer</button></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function genererRecapGlobal() {
     if (!payments || payments.length === 0) {
         alert("Aucun paiement enregistré.");
         return;
     }
-
     let html = `<table border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
-        <thead>
-            <tr>
-                <th>Parent</th>
-                <th>Téléphone</th>
-                <th>Élèves</th>
-                <th>Total versé</th>
-                <th>Solde restant</th>
-            </tr>
-        </thead>
+        <thead><tr><th>Parent</th><th>Téléphone</th><th>Élèves</th><th>Total versé</th><th>Solde restant</th></tr></thead>
         <tbody>`;
-
     payments.forEach(p => {
-        // Sécurisation : s'assurer que students est un tableau
-        const studentsList = p.students && Array.isArray(p.students) ? p.students : [];
+        const studentsList = (p.students && Array.isArray(p.students)) ? p.students : [];
         const elevesList = studentsList.map(s => `${s.nom || '?'} (${s.classe || '?'})`).join(', ');
-        
         html += `<tr>
             <td>${escapeHtml(p.parentNom) || '-'}</td>
             <td>${escapeHtml(p.telephone) || '-'}</td>
@@ -347,17 +362,13 @@
             <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
         </tr>`;
     });
-
     const totalGlobal = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
     const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
-    
     html += `<tr style="background:#e9ecef; font-weight:bold;">
         <td colspan="3">TOTAUX</td>
         <td>${totalGlobal.toLocaleString()} FCFA</td>
         <td>${totalReste.toLocaleString()} FCFA</td>
-    </tr>`;
-    html += `</tbody></table>`;
-
+    </tr></tbody></table>`;
     document.getElementById('contenu-recap').innerHTML = html;
     document.getElementById('date-recap').innerText = new Date().toLocaleString();
     document.getElementById('recap-global').style.display = 'block';
@@ -428,14 +439,108 @@
     
     function getPrintStyles() { return `body { font-family: sans-serif; margin:20px; } .print-container { max-width:100%; } table { width:100%; border-collapse:collapse; } th,td { border:1px solid #aaa; padding:8px; text-align:left; } .budget-stats { display:flex; gap:15px; } .stat-box { border:1px solid #ccc; padding:10px; }`; }
     
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        if(tabId === 'paiement') document.querySelectorAll('.tab-button')[0].classList.add('active');
+        else if(tabId === 'budget') document.querySelectorAll('.tab-button')[1].classList.add('active');
+        else if(tabId === 'historique') document.querySelectorAll('.tab-button')[2].classList.add('active');
+        if(tabId === 'budget') updateBudget();
+        if(tabId === 'historique') renderHistorique();
+    }
+    
     function exporterDonnees() { exporterPaiements(); }
     function exporterRapportBudget() { alert("Export CSV budget: " + JSON.stringify(payments.map(p=>({date:p.date,montant:p.montantVerse,parent:p.parentNom})))); }
+// Fonction générique de génération PDF à partir d'un élément HTML
+function genererPDF(element, fileName, telecharger = true) {
+    if (!element) {
+        alert("Élément introuvable pour le PDF.");
+        return;
+    }
+    const opt = {
+        margin:        [0.5, 0.5, 0.5, 0.5],
+        filename:     fileName,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, letterRendering: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    if (telecharger) {
+        html2pdf().set(opt).from(element).save();
+    } else {
+        // Prévisualisation : générer et ouvrir dans un nouvel onglet
+        html2pdf().set(opt).from(element).outputPdf().then(pdf => {
+            const blob = new Blob([pdf], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            window.open(url);
+            URL.revokeObjectURL(url);
+        });
+    }
+}
 
-    
+// PDF pour l'historique des paiements
+function genererPDFHistorique(telecharger = true) {
+    const historiqueDiv = document.getElementById('historique').cloneNode(true);
+    // Supprimer les éléments superflus (boutons, actions, etc.)
+    historiqueDiv.querySelectorAll('.no-print, .recap-actions, button, .actions').forEach(el => el.remove());
+    // Créer un conteneur propre
+    const container = document.createElement('div');
+    container.style.padding = '20px';
+    container.style.fontFamily = 'Arial, sans-serif';
+    container.innerHTML = `
+        <h1 style="text-align:center;">APEE CES D'EKALI 1</h1>
+        <h2 style="text-align:center;">Historique des paiements</h2>
+        <p style="text-align:center;">Généré le ${new Date().toLocaleString()}</p>
+        <hr/>
+        ${historiqueDiv.innerHTML}
+    `;
+    genererPDF(container, 'historique_paiements.pdf', telecharger);
+}
+
+// PDF pour l'impact budget
+function genererPDFBudget(telecharger = true) {
+    const budgetDiv = document.getElementById('budget').cloneNode(true);
+    budgetDiv.querySelectorAll('.no-print, .recap-actions, button').forEach(el => el.remove());
+    const container = document.createElement('div');
+    container.style.padding = '20px';
+    container.innerHTML = `
+        <h1 style="text-align:center;">APEE CES D'EKALI 1</h1>
+        <h2 style="text-align:center;">Impact sur le budget prévisionnel</h2>
+        <p>Généré le ${new Date().toLocaleString()}</p>
+        <hr/>
+        ${budgetDiv.innerHTML}
+    `;
+    genererPDF(container, 'impact_budget.pdf', telecharger);
+}
+
+// PDF pour le récapitulatif global (s'assure qu'il est généré avant)
+function genererPDFRecap(telecharger = true) {
+    let recapDiv = document.getElementById('recap-global');
+    if (!recapDiv || recapDiv.style.display === 'none') {
+        alert("Veuillez d'abord générer le récapitulatif global (bouton 'Générer récapitulatif global' ou 'Récap Global').");
+        genererRecapGlobal(); // tente de le générer automatiquement
+        if (!recapDiv || recapDiv.style.display === 'none') {
+            alert("Impossible de générer le récapitulatif. Aucune donnée.");
+            return;
+        }
+    }
+    const recapClone = recapDiv.cloneNode(true);
+    recapClone.querySelectorAll('.recap-actions, button, .no-print').forEach(el => el.remove());
+    const container = document.createElement('div');
+    container.style.padding = '20px';
+    container.innerHTML = `
+        <h1 style="text-align:center;">APEE CES D'EKALI 1</h1>
+        <h2 style="text-align:center;">Récapitulatif global des cotisations</h2>
+        <p>Généré le ${new Date().toLocaleString()}</p>
+        <hr/>
+        ${recapClone.innerHTML}
+    `;
+    genererPDF(container, 'recapitulatif_global.pdf', telecharger);
+}    
     </script>
     
     <script src="public/api.js"></script>
-    <script src="public/script.js"></script>
+    <script src="public/script.js"></script>   
 
 </body>
 </html>
