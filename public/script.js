@@ -38,12 +38,17 @@
   let eleves = [];
   let paiements = [];
   let currentParent = null;
+  let payments = [];          // [{ id, parentNom, telephone, adresse, students, montantVerse, resteAPayer, date, observations }]
+    let tempStudents = [];      // [{ nom, classe }]
+    let currentParentSolde = 0;    
 
   // Constants
   const C = {
       COTISATION_PAR_ELEVE: 12500,
       OBJECTIF_RECETTES: 1250000
   };
+    //CONSTANTES & STOCKAGE 2eme partie
+    const COTISATION = 12500;  
 
   // Utility Functions
   const formatCurrency = (amount) => `${amount.toLocaleString()} FCFA`;
@@ -150,45 +155,45 @@
       restePayer.value = formatCurrency(reste);
   }
 
-  function enregistrerPaiement() {
-      const nom = nomParent.value.trim();
-      const tel = telephone.value.trim();
-      const adr = adresse.value.trim();
-      const verse = parseFloat(montantVerse.value) || 0;
-      const reste = parseFloat(restePayer.value.replace(/\s|FCFA/g, ""));
-      const obs = observations.value.trim();
-      const date = new Date().toISOString();
+ // function enregistrerPaiement() {
+      //const nom = nomParent.value.trim();
+      //const tel = telephone.value.trim();
+   //   const adr = adresse.value.trim();
+  //    const verse = parseFloat(montantVerse.value) || 0;
+     // const reste = parseFloat(restePayer.value.replace(/\s|FCFA/g, ""));
+    //  const obs = observations.value.trim();
+   //   const date = new Date().toISOString();
 
-      if (!nom || !tel || (eleves.length === 0 && !currentParent)) {
-          alert("Veuillez remplir les informations du parent et ajouter au moins un élève.");
-          return;
-      }
+    //  if (!nom || !tel || (eleves.length === 0 && !currentParent)) {
+   //       alert("Veuillez remplir les informations du parent et ajouter au moins un élève.");
+        //  return;
+   //   }
 
-      const paiement = {
-          nomParent: nom,
-          telephone: tel,
-          adresse: adr,
-          eleves: eleves,
-          montantVerse: verse,
-          restePayer: reste,
-          date: date,
-          observations: obs
-      };
+     // const paiement = {
+   //       nomParent: nom,
+     //     telephone: tel,
+     //     adresse: adr,
+    //      eleves: eleves,
+    //      montantVerse: verse,
+     //     restePayer: reste,
+     //     date: date,
+   //       observations: obs
+  //    };
 
-      if (currentParent) {
-          const index = paiements.findIndex(p => p.nomParent === currentParent.nomParent && p.telephone === currentParent.telephone);
-          paiements[index] = { ...paiements[index], ...paiement };
-      } else {
-          paiements.push(paiement);
-      }
+   //   if (currentParent) {
+   //       const index = paiements.findIndex(p => p.nomParent === currentParent.nomParent && p.telephone === currentParent.telephone);
+   //       paiements[index] = { ...paiements[index], ...paiement };
+   //   } else {
+   //       paiements.push(paiement);
+  //    }
 
-      saveToLocalStorage("paiements", paiements);
-      alert("Paiement enregistré avec succès !");
-      resetForm();
-      afficherPaiementsDansTableau();
-      mettreAJourBudget();
-      afficherDerniersPaiements();
-  }
+   //   saveToLocalStorage("paiements", paiements);
+   //   alert("Paiement enregistré avec succès !");
+  //    resetForm();
+   //   afficherPaiementsDansTableau();
+  //    mettreAJourBudget();
+  //    afficherDerniersPaiements();
+//  }
 
   function resetForm() {
       nomParent.value = "";
@@ -226,15 +231,7 @@
   }
 
 
-  function supprimerPaiement(index) {
-      if (confirm("Êtes-vous sûr de vouloir supprimer ce paiement ?")) {
-          paiements.splice(index, 1);
-          saveToLocalStorage("paiements", paiements);
-          afficherPaiementsDansTableau();
-          mettreAJourBudget();
-          afficherDerniersPaiements();
-      }
-  }
+  
 
   function mettreAJourBudget() {
       const totalVerse = paiements.reduce((acc, p) => acc + p.montantVerse, 0);
