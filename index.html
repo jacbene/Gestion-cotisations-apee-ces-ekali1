@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Gestion des Cotisations - APEE CES D'EKALI 1</title>
     <link rel="stylesheet" href="public/style.css">
 
@@ -10,9 +10,9 @@
     <meta name="theme-color" content="#4CAF50">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="APEE EKALI1">
+    <meta name="apple-mobile-web-app-title" content="APEE CES EKALI1">
 
-    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="apple-touch-icon.png">
     <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
     <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
@@ -21,15 +21,18 @@
     <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="icons/android-icon-192x192.png">
+    
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/web-app-manifest-512x512.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="web-app-manifest-192x192.png">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="icon" type="image/png"  href="icons/favicon.ico">
 
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
 </head>
@@ -318,141 +321,123 @@
             </div>
         </footer>
     </div>
+    
+  <script>
+    let payments = [];
+    let tempStudents = [];
+    let currentParentSolde = 0;
+    const COTISATION = 12500;
 
- <script>  
-   
-    function afficherRecap() { genererRecapGlobal(); }  
-
-
-     
-    
-    
-        // Fonctions d'impression DOCUMENTS (implémentées)
-
-    
-    
-    
-    // Fonction générique de génération PDF à partir d'un élément HTML
-function genererPDF(element, fileName, telecharger = true) {
-    if (!element) {
-        alert("Élément introuvable pour le PDF.");
-        return;
+    // =============================================
+    // 1. OUTILS DE DATE (format français)
+    // =============================================
+    function formatDateFR(dateStr) {
+        // dateStr attendu au format "YYYY-MM-DD HH:MM:SS"
+        if (!dateStr) return '-';
+        const [datePart] = dateStr.split(' ');
+        const [year, month, day] = datePart.split('-');
+        return `${day}/${month}/${year}`;
     }
-    const opt = {
-        margin:        [0.5, 0.5, 0.5, 0.5],
-        filename:     fileName,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, letterRendering: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-    if (telecharger) {
-        html2pdf().set(opt).from(element).save();
-    } else {
-        // Prévisualisation : générer et ouvrir dans un nouvel onglet
-        html2pdf().set(opt).from(element).outputPdf().then(pdf => {
-            const blob = new Blob([pdf], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            window.open(url);
-            URL.revokeObjectURL(url);
-        });
+
+    function formatDateHeureFR(dateStr) {
+        if (!dateStr) return '-';
+        const [datePart, timePart] = dateStr.split(' ');
+        const [year, month, day] = datePart.split('-');
+        const heure = timePart ? timePart.substring(0,5) : '';
+        return heure ? `${day}/${month}/${year} à ${heure}` : `${day}/${month}/${year}`;
     }
-}
 
-// PDF pour l'historique des paiements
-function genererPDFHistorique(telecharger = true) {
-    const historiqueDiv = document.getElementById('historique').cloneNode(true);
-    // Supprimer les éléments superflus (boutons, actions, etc.)
-    historiqueDiv.querySelectorAll('.no-print, .recap-actions, button, .actions').forEach(el => el.remove());
-    // Créer un conteneur propre
-    const container = document.createElement('div');
-    container.style.padding = '20px';
-    container.style.fontFamily = 'Arial, sans-serif';
-    container.innerHTML = `
-        <h1 style="text-align:center;">APEE CES D'EKALI 1</h1>
-        <h2 style="text-align:center;">Historique des paiements</h2>
-        <p style="text-align:center;">Généré le ${new Date().toLocaleString()}</p>
-        <hr/>
-        ${historiqueDiv.innerHTML}
-    `;
-    genererPDF(container, 'historique_paiements.pdf', telecharger);
-}
+    // Pour les noms de fichiers (sans deux-points, compatible Windows)
+    function dateForFilename() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2,'0');
+        const month = String(now.getMonth()+1).padStart(2,'0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2,'0');
+        const minutes = String(now.getMinutes()).padStart(2,'0');
+        const seconds = String(now.getSeconds()).padStart(2,'0');
+        return `${day}-${month}-${year}_${hours}-${minutes}-${seconds}`;
+    }
 
-// PDF pour l'impact budget
-function genererPDFBudget(telecharger = true) {
-    const budgetDiv = document.getElementById('budget').cloneNode(true);
-    budgetDiv.querySelectorAll('.no-print, .recap-actions, button').forEach(el => el.remove());
-    const container = document.createElement('div');
-    container.style.padding = '20px';
-    container.innerHTML = `
-        <h1 style="text-align:center;">APEE CES D'EKALI 1</h1>
-        <h2 style="text-align:center;">Impact sur le budget prévisionnel</h2>
-        <p>Généré le ${new Date().toLocaleString()}</p>
-        <hr/>
-        ${budgetDiv.innerHTML}
-    `;
-    genererPDF(container, 'impact_budget.pdf', telecharger);
-}
-
-// PDF pour le récapitulatif global (s'assure qu'il est généré avant)
-function genererPDFRecap(telecharger = true) {
-    let recapDiv = document.getElementById('recap-global');
-    if (!recapDiv || recapDiv.style.display === 'none') {
-        alert("Veuillez d'abord générer le récapitulatif global (bouton 'Générer récapitulatif global' ou 'Récap Global').");
-        genererRecapGlobal(); // tente de le générer automatiquement
-        if (!recapDiv || recapDiv.style.display === 'none') {
-            alert("Impossible de générer le récapitulatif. Aucune donnée.");
-            return;
+    // =============================================
+    // 2. NORMALISATION DES ANCIENS PAIEMENTS
+    // =============================================
+    function normalizePayment(p) {
+        if (p.nomParent && !p.parentNom) {
+            return {
+                id: p.id || Date.now(),
+                parentNom: p.nomParent,
+                telephone: p.telephone || '',
+                adresse: p.adresse || '',
+                students: Array.isArray(p.eleves)
+                    ? p.eleves.map(e => ({ nom: e.nom || '', classe: e.cl || e.classe || '' }))
+                    : (Array.isArray(p.students) ? p.students : []),
+                montantVerse: p.montantVerse || 0,
+                resteAPayer: p.restePayer ?? p.resteAPayer ?? 0,
+                date: p.date || new Date().toISOString().slice(0,19).replace('T',' '),
+                observations: p.observations || ''
+            };
         }
+        return {
+            ...p,
+            students: Array.isArray(p.students)
+                ? p.students.map(s => ({ nom: s.nom || '', classe: s.classe || s.cl || '' }))
+                : [],
+            parentNom: p.parentNom || '',
+            telephone: p.telephone || '',
+            montantVerse: p.montantVerse || 0,
+            resteAPayer: p.resteAPayer || 0,
+            date: p.date || ''
+        };
     }
-    const recapClone = recapDiv.cloneNode(true);
-    recapClone.querySelectorAll('.recap-actions, button, .no-print').forEach(el => el.remove());
-    const container = document.createElement('div');
-    container.style.padding = '20px';
-    container.innerHTML = `
-        <h1 style="text-align:center;">APEE CES D'EKALI 1</h1>
-        <h2 style="text-align:center;">Récapitulatif global des cotisations</h2>
-        <p>Généré le ${new Date().toLocaleString()}</p>
-        <hr/>
-        ${recapClone.innerHTML}
-    `;
-    genererPDF(container, 'recapitulatif_global.pdf', telecharger);
-}
-    
-    </script>
-    
-    <script src="public/api.js"></script>
-    <script src="public/script.js"></script>
-    
-    <script>
 
-    // Chargement initial
+    // =============================================
+    // 3. CHARGEMENT / SAUVEGARDE
+    // =============================================
     function loadData() {
         const stored = localStorage.getItem('apee_payments');
-        if(stored) payments = JSON.parse(stored);
-        else payments = [];
+        if (stored) {
+            try {
+                let raw = JSON.parse(stored);
+                if (!Array.isArray(raw)) raw = [];
+                payments = raw.map(normalizePayment);
+            } catch (e) {
+                payments = [];
+            }
+        } else {
+            payments = [];
+        }
         renderHistorique();
         updateBudget();
         updateRecentPayments();
     }
-    
-    function saveData() { localStorage.setItem('apee_payments', JSON.stringify(payments)); renderHistorique(); updateBudget(); updateRecentPayments(); }
 
-    // Calcul du solde impayé d'un parent (cumul restes)
-    function getParentUnpaid(nom, tel) {
-        if(!nom || !tel) return 0;
-        return payments.filter(p => p.parentNom.toLowerCase() === nom.toLowerCase() && p.telephone === tel).reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
+    function saveData() {
+        localStorage.setItem('apee_payments', JSON.stringify(payments));
+        renderHistorique();
+        updateBudget();
+        updateRecentPayments();
     }
 
-    // Mise à jour statut parent + dette
+    // =============================================
+    // 4. GESTION DES PARENTS / ÉLÈVES
+    // =============================================
+    function getParentUnpaid(nom, tel) {
+        if (!nom || !tel) return 0;
+        return payments
+            .filter(p => p.parentNom.toLowerCase() === nom.toLowerCase() && p.telephone === tel)
+            .reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
+    }
+
     function refreshParentStatus() {
         const nom = document.getElementById('nom-parent').value.trim();
         const tel = document.getElementById('telephone').value.trim();
-        if(nom && tel) {
+        if (nom && tel) {
             const unpaid = getParentUnpaid(nom, tel);
             currentParentSolde = unpaid;
             const statutSpan = document.getElementById('statut-parent');
             const detailsDiv = document.getElementById('details-parent');
-            if(unpaid > 0) {
+            if (unpaid > 0) {
                 statutSpan.innerHTML = `⚠️ Parent existant - Dette impayée: ${unpaid.toLocaleString()} FCFA`;
                 detailsDiv.innerHTML = `<small>Solde antérieur à régulariser.</small>`;
                 document.getElementById('paiement-dette').style.display = 'block';
@@ -478,29 +463,58 @@ function genererPDFRecap(telecharger = true) {
         document.getElementById('reste-payer').value = reste.toLocaleString() + ' FCFA';
     }
 
-    
+    function ajouterEleve() {
+        const nom = document.getElementById('nom-eleve').value.trim();
+        const classe = document.getElementById('classe').value.trim();
+        if (!nom || !classe) {
+            alert('Veuillez remplir le nom et la classe de l’élève.');
+            return;
+        }
+        tempStudents.push({ nom, classe });
+        afficherListeEleves();
+        updateTotalDue();
+        document.getElementById('nom-eleve').value = '';
+        document.getElementById('classe').value = '';
+    }
 
     function afficherListeEleves() {
         const container = document.getElementById('liste-eleves');
-        if(!container) return;
-        if(tempStudents.length === 0) { container.innerHTML = '<em>Aucun élève ajouté</em>'; return; }
-        container.innerHTML = tempStudents.map((s, idx) => `<div class="student-item"><span><strong>${s.nom}</strong> - ${s.classe}</span><button class="delete-student" onclick="retirerEleve(${idx})">Supprimer</button></div>`).join('');
+        if (!container) return;
+        if (tempStudents.length === 0) {
+            container.innerHTML = '<em>Aucun élève ajouté</em>';
+            return;
+        }
+        container.innerHTML = tempStudents.map((s, idx) =>
+            `<div class="student-item">
+                <span><strong>${s.nom}</strong> - ${s.classe}</span>
+                <button class="delete-student" onclick="retirerEleve(${idx})">Supprimer</button>
+            </div>`
+        ).join('');
     }
 
-    function retirerEleve(idx) { tempStudents.splice(idx,1); afficherListeEleves(); updateTotalDue(); }
+    function retirerEleve(idx) {
+        tempStudents.splice(idx, 1);
+        afficherListeEleves();
+        updateTotalDue();
+    }
 
+    // =============================================
+    // 5. ENREGISTREMENT D'UN PAIEMENT
+    // =============================================
     function enregistrerPaiement() {
         const nom = document.getElementById('nom-parent').value.trim();
         const telephone = document.getElementById('telephone').value.trim();
         const adresse = document.getElementById('adresse').value;
         const observations = document.getElementById('observations').value;
         const montantVerse = parseFloat(document.getElementById('montant-verse').value);
-        if(!nom || !telephone) { alert("Nom et téléphone obligatoires"); return; }
-        if(tempStudents.length === 0 && currentParentSolde === 0) { alert("Ajoutez au moins un élève ou il y a une dette à payer."); return; }
-        if(isNaN(montantVerse) || montantVerse <=0) { alert("Montant versé invalide"); return; }
+        if (!nom || !telephone) { alert("Nom et téléphone obligatoires"); return; }
+        if (tempStudents.length === 0 && currentParentSolde === 0) {
+            alert("Ajoutez au moins un élève ou il y a une dette à payer."); return;
+        }
+        if (isNaN(montantVerse) || montantVerse <= 0) { alert("Montant versé invalide"); return; }
         const studentsCost = tempStudents.length * COTISATION;
         const totalDue = studentsCost + currentParentSolde;
-        if(montantVerse > totalDue) { alert("Le montant versé ne peut pas dépasser le dû total."); return; }
+        if (montantVerse > totalDue) { alert("Le montant versé ne peut pas dépasser le dû total."); return; }
         const reste = totalDue - montantVerse;
         const newPayment = {
             id: Date.now(),
@@ -510,81 +524,133 @@ function genererPDFRecap(telecharger = true) {
             students: [...tempStudents],
             montantVerse: montantVerse,
             resteAPayer: reste,
-            date: new Date().toISOString().slice(0,19).replace('T',' '),
+            date: new Date().toISOString().slice(0, 19).replace('T', ' '),
             observations
         };
         payments.push(newPayment);
         saveData();
-        // Réinitialisation du formulaire (sauf parent optionnel)
         tempStudents = [];
         afficherListeEleves();
         document.getElementById('montant-verse').value = '';
         document.getElementById('observations').value = '';
         document.getElementById('adresse').value = '';
-        // Ne pas effacer nom tel pour faciliter enchaînement
         updateTotalDue();
-        refreshParentStatus(); // recalcul solde (actualisé)
+        refreshParentStatus();
         alert("Paiement enregistré avec succès !");
-        renderHistorique();
-        updateBudget();
-        updateRecentPayments();
     }
 
+    // =============================================
+    // 6. AFFICHAGE HISTORIQUE (TABLEAU)
+    // =============================================
     function renderHistorique() {
         const tbody = document.querySelector('#tableau-paiements tbody');
-        if(!tbody) return;
-        if(payments.length === 0) { tbody.innerHTML = '<tr><td colspan="8">Aucun paiement enregistré</td></tr>'; return; }
-        tbody.innerHTML = payments.map(p => `
-            <tr>
-                <td>${p.parentNom}</td><td>${p.telephone}</td>
-                <td>${p.students.map(s=>s.nom).join(', ') || '-'}</td>
-                <td>${p.students.map(s=>s.classe).join(', ') || '-'}</td>
-                <td>${p.montantVerse.toLocaleString()} FCFA</td>
-                <td>${p.resteAPayer.toLocaleString()} FCFA</td>
-                <td>${p.date}</td>
-                <td class="no-print"><button onclick="supprimerPaiement(${p.id})" style="background:#dc3545;">🗑️ Supprimer</button></td>
-            </tr>
-        `).join('');
+        if (!tbody) return;
+        if (payments.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8">Aucun paiement enregistré</td></tr>';
+            return;
+        }
+        tbody.innerHTML = payments.map(p => {
+            const students = Array.isArray(p.students) ? p.students : [];
+            const elevesNoms = students.map(s => s.nom || '?').join(', ') || '-';
+            const elevesClasses = students.map(s => s.classe || '?').join(', ') || '-';
+            return `
+                <tr>
+                    <td>${p.parentNom || '-'}</td>
+                    <td>${p.telephone || '-'}</td>
+                    <td>${elevesNoms}</td>
+                    <td>${elevesClasses}</td>
+                    <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
+                    <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
+                    <td>${formatDateFR(p.date)}</td>
+                    <td class="no-print"><button onclick="supprimerPaiement(${p.id})" style="background:#dc3545;">🗑️ Supprimer</button></td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    function supprimerPaiement(id) { if(confirm("Supprimer définitivement ce paiement ?")){ payments = payments.filter(p => p.id !== id); saveData(); refreshParentStatus(); updateTotalDue(); } }
-
-    function updateBudget() {
-        const totalRecettes = payments.reduce((sum,p)=> sum + p.montantVerse, 0);
-        const objectif = 1250000;
-        const taux = (totalRecettes/objectif)*100;
-        document.getElementById('recettes-realisees').innerText = totalRecettes.toLocaleString() + ' FCFA';
-        document.getElementById('taux-realisation').innerText = taux.toFixed(1)+'%';
-        document.getElementById('progress-bar-fill').style.width = Math.min(taux,100)+'%';
-        document.getElementById('progress-bar-fill').innerText = Math.min(taux,100).toFixed(0)+'%';
-        // Détail mensuel
-        const moisMap = new Map();
-        payments.forEach(p => {
-            const mois = p.date.substring(0,7);
-            if(!moisMap.has(mois)) moisMap.set(mois, { nb:0, montant:0, eleves:0 });
-            const entry = moisMap.get(mois);
-            entry.nb += 1;
-            entry.montant += p.montantVerse;
-            entry.eleves += p.students.length;
-        });
-        const tbodyMensuel = document.getElementById('details-mensuels');
-        if(tbodyMensuel) {
-            if(moisMap.size===0) tbodyMensuel.innerHTML = '<tr><td colspan="4">Aucune donnée</td></tr>';
-            else tbodyMensuel.innerHTML = Array.from(moisMap.entries()).map(([mois, data]) => `<tr><td>${mois}</td><td>${data.nb}</td><td>${data.montant.toLocaleString()} FCFA</td><td>${data.eleves}</td></tr>`).join('');
+    function supprimerPaiement(id) {
+        if (confirm("Supprimer définitivement ce paiement ?")) {
+            payments = payments.filter(p => p.id !== id);
+            saveData();
+            refreshParentStatus();
+            updateTotalDue();
         }
     }
-    function updateRecentPayments() {
-        const container = document.getElementById('derniers-paiements');
-        if(!container) return;
-        const recent = [...payments].reverse().slice(0,5);
-        if(recent.length===0) { container.innerHTML = '<em>Aucun paiement récent</em>'; return; }
-        container.innerHTML = recent.map(p => `<div class="paiement-item">📌 ${p.parentNom} - ${p.montantVerse.toLocaleString()} FCFA le ${p.date}</div>`).join('');
+
+    // =============================================
+    // 7. BUDGET & STATISTIQUES
+    // =============================================
+    function updateBudget() {
+        const totalRecettes = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
+        const objectif = 1250000;
+        const taux = (totalRecettes / objectif) * 100;
+        const recettesElt = document.getElementById('recettes-realisees');
+        const tauxElt = document.getElementById('taux-realisation');
+        const barFill = document.getElementById('progress-bar-fill');
+        if (recettesElt) recettesElt.innerText = totalRecettes.toLocaleString() + ' FCFA';
+        if (tauxElt) tauxElt.innerText = taux.toFixed(1) + '%';
+        if (barFill) {
+            barFill.style.width = Math.min(taux, 100) + '%';
+            barFill.innerText = Math.min(taux, 100).toFixed(0) + '%';
+        }
+
+        const moisMap = new Map();
+        payments.forEach(p => {
+            if (!p.date) return;
+            const [datePart] = p.date.split(' '); // "YYYY-MM-DD"
+            const [year, monthNum] = datePart.split('-');
+            const mois = `${year}-${monthNum}`;
+            if (!moisMap.has(mois)) moisMap.set(mois, { nb: 0, montant: 0, eleves: 0 });
+            const entry = moisMap.get(mois);
+            entry.nb += 1;
+            entry.montant += (p.montantVerse || 0);
+            entry.eleves += Array.isArray(p.students) ? p.students.length : 0;
+        });
+        const tbodyMensuel = document.getElementById('details-mensuels');
+        if (tbodyMensuel) {
+            if (moisMap.size === 0) {
+                tbodyMensuel.innerHTML = '<tr><td colspan="4">Aucune donnée</td></tr>';
+            } else {
+                // Pour l'affichage des mois, on peut les convertir en "Mois Année" en français
+                const moisFR = {
+                    '01': 'Janvier', '02': 'Février', '03': 'Mars',
+                    '04': 'Avril', '05': 'Mai', '06': 'Juin',
+                    '07': 'Juillet', '08': 'Août', '09': 'Septembre',
+                    '10': 'Octobre', '11': 'Novembre', '12': 'Décembre'
+                };
+                tbodyMensuel.innerHTML = Array.from(moisMap.entries())
+                    .map(([mois, data]) => {
+                        const [annee, moisNum] = mois.split('-');
+                        const moisTexte = moisFR[moisNum] || moisNum;
+                        return `<tr><td>${moisTexte} ${annee}</td><td>${data.nb}</td><td>${data.montant.toLocaleString()} FCFA</td><td>${data.eleves}</td></tr>`;
+                    })
+                    .join('');
+            }
+        }
     }
 
-    // Fonctions d'impression DOCUMENTS (implémentées)
+    function updateRecentPayments() {
+        const container = document.getElementById('derniers-paiements');
+        if (!container) return;
+        const recent = [...payments].reverse().slice(0, 5);
+        if (recent.length === 0) {
+            container.innerHTML = '<em>Aucun paiement récent</em>';
+            return;
+        }
+        container.innerHTML = recent.map(p =>
+            `<div class="paiement-item">📌 ${p.parentNom || '?'} - ${(p.montantVerse || 0).toLocaleString()} FCFA le ${formatDateFR(p.date)}</div>`
+        ).join('');
+    }
+
+    // =============================================
+    // 8. IMPRESSIONS & PDF (utilise les mêmes formats)
+    // =============================================
+    function getPrintStyles() {
+        return `body { font-family: sans-serif; margin:20px; } .print-container { max-width:100%; } table { width:100%; border-collapse:collapse; } th,td { border:1px solid #aaa; padding:8px; text-align:left; } .budget-stats { display:flex; gap:15px; } .stat-box { border:1px solid #ccc; padding:10px; }`;
+    }
+
     function imprimerHistorique() {
         const historiqueContent = document.getElementById('historique').cloneNode(true);
-        // Nettoyer les actions et éléments no-print dans la copie
         historiqueContent.querySelectorAll('.no-print, .recap-actions, button, .recap-container').forEach(el => el.remove());
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
@@ -611,8 +677,8 @@ function genererPDFRecap(telecharger = true) {
 
     function imprimerRecap() {
         const recapElem = document.getElementById('recap-global');
-        if(!recapElem || recapElem.style.display === 'none') {
-            alert("Veuillez d'abord générer le récapitulatif global (bouton 'Générer récapitulatif global' ou 'Récap Global')");
+        if (!recapElem || recapElem.style.display === 'none') {
+            alert("Veuillez d'abord générer le récapitulatif global.");
             return;
         }
         const recapClone = recapElem.cloneNode(true);
@@ -628,96 +694,197 @@ function genererPDFRecap(telecharger = true) {
     }
 
     function genererRecapGlobal() {
-    if (!payments || payments.length === 0) {
-        alert("Aucun paiement enregistré.");
-        return;
+        if (!payments || payments.length === 0) {
+            alert("Aucun paiement enregistré.");
+            return;
+        }
+        let html = `<table border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
+            <thead><tr><th>Parent</th><th>Téléphone</th><th>Élèves</th><th>Total versé</th><th>Solde restant</th><th>Date</th></tr></thead><tbody>`;
+        payments.forEach(p => {
+            const studentsList = Array.isArray(p.students) ? p.students.map(s => `${s.nom || '?'} (${s.classe || '?'})`).join(', ') : '-';
+            html += `<tr>
+                <td>${escapeHtml(p.parentNom) || '-'}</td>
+                <td>${escapeHtml(p.telephone) || '-'}</td>
+                <td>${studentsList}</td>
+                <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
+                <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
+                <td>${formatDateFR(p.date)}</td>
+            </tr>`;
+        });
+        const totalGlobal = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
+        const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
+        html += `<tr style="background:#e9ecef; font-weight:bold;">
+            <td colspan="4">TOTAUX</td>
+            <td>${totalGlobal.toLocaleString()} FCFA</td>
+            <td>${totalReste.toLocaleString()} FCFA</td>
+        </tr></tbody></table>`;
+        document.getElementById('contenu-recap').innerHTML = html;
+        document.getElementById('date-recap').innerText = new Date().toLocaleDateString('fr-FR', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+        document.getElementById('recap-global').style.display = 'block';
     }
 
-    let html = `<table border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
-        <thead>
-            <tr>
-                <th>Parent</th>
-                <th>Téléphone</th>
-                <th>Élèves</th>
-                <th>Total versé</th>
-                <th>Solde restant</th>
-            </tr>
-        </thead>
-        <tbody>`;
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
+    }
 
-    payments.forEach(p => {
-        // Sécurisation : s'assurer que students est un tableau
-        const studentsList = p.students && Array.isArray(p.students) ? p.students : [];
-        const elevesList = studentsList.map(s => `${s.nom || '?'} (${s.classe || '?'})`).join(', ');
-        
-        html += `<tr>
-            <td>${escapeHtml(p.parentNom) || '-'}</td>
-            <td>${escapeHtml(p.telephone) || '-'}</td>
-            <td>${elevesList || '-'}</td>
-            <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
-            <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
-        </tr>`;
-    });
-
-    const totalGlobal = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
-    const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
-    
-    html += `<tr style="background:#e9ecef; font-weight:bold;">
-        <td colspan="3">TOTAUX</td>
-        <td>${totalGlobal.toLocaleString()} FCFA</td>
-        <td>${totalReste.toLocaleString()} FCFA</td>
-    </tr>`;
-    html += `</tbody></table>`;
-
-    document.getElementById('contenu-recap').innerHTML = html;
-    document.getElementById('date-recap').innerText = new Date().toLocaleString();
-    document.getElementById('recap-global').style.display = 'block';
-}
-     function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
     function fermerRecap() { document.getElementById('recap-global').style.display = 'none'; }
     function afficherRecap() { genererRecapGlobal(); }
-    function envoyerSMS() { alert("📲 Simulateur SMS: Un récapitulatif serait envoyé au parent via SMS. (Intégration API réelle possible)"); }
+
+    // =============================================
+    // 9. SMS (simulé)
+    // =============================================
+    function envoyerSMS() { alert("📲 Simulateur SMS: Un récapitulatif serait envoyé au parent via SMS."); }
+
+    // =============================================
+    // 10. EXPORT / IMPORT (noms de fichiers en français)
+    // =============================================
+    function exporterPaiements() {
+        const dataStr = JSON.stringify(payments, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `paiements_${dateForFilename()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        alert("Export JSON réussi");
+    }
+
+    function importerPaiements() {
+        const input = document.getElementById('file-input');
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (Array.isArray(imported)) {
+                        payments = imported.map(normalizePayment);
+                        saveData();
+                        alert("Import réussi");
+                        location.reload();
+                    } else alert("Format invalide");
+                } catch (err) { alert("Erreur fichier JSON"); }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    function sauvegarderBackup() {
+        const backup = { payments, version: "1.0", date: new Date() };
+        const dataStr = JSON.stringify(backup, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `backup_apee_${dateForFilename()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        alert("Backup complet sauvegardé");
+    }
+
     function exporterDonnees() { exporterPaiements(); }
-    function exporterRapportBudget() { alert("Export CSV budget: " + JSON.stringify(payments.map(p=>({date:p.date,montant:p.montantVerse,parent:p.parentNom})))); }
+    function exporterRapportBudget() {
+        alert("Export CSV budget: " + JSON.stringify(payments.map(p=>({date:p.date,montant:p.montantVerse,parent:p.parentNom}))));
+    }
 
-    // Fichiers JSON
-    function exporterPaiements() { const dataStr = JSON.stringify(payments, null, 2); const blob = new Blob([dataStr], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `apee_paiements_${new Date().toISOString().slice(0,19)}.json`; a.click(); URL.revokeObjectURL(a.href); alert("Export JSON réussi"); }
-    function importerPaiements() { const input = document.getElementById('file-input'); input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = ev => { try { const imported = JSON.parse(ev.target.result); if(Array.isArray(imported)) { payments = imported; saveData(); alert("Import réussi"); location.reload(); } else alert("Format invalide"); } catch(err){ alert("Erreur fichier JSON"); } }; reader.readAsText(file); }; input.click(); }
-    function sauvegarderBackup() { const backup = { payments, version: "1.0", date: new Date() }; const dataStr = JSON.stringify(backup, null, 2); const blob = new Blob([dataStr], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `apee_backup_complet.json`; a.click(); alert("Backup complet sauvegardé"); }
-
-    function getPrintStyles() { return `body { font-family: sans-serif; margin:20px; } .print-container { max-width:100%; } table { width:100%; border-collapse:collapse; } th,td { border:1px solid #aaa; padding:8px; text-align:left; } .budget-stats { display:flex; gap:15px; } .stat-box { border:1px solid #ccc; padding:10px; }`; }
-
+    // =============================================
+    // 11. NAVIGATION PAR ONGLETS
+    // =============================================
     function showTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        if(tabId === 'paiement') document.querySelectorAll('.tab-button')[0].classList.add('active');
-        else if(tabId === 'budget') document.querySelectorAll('.tab-button')[1].classList.add('active');
-        else if(tabId === 'historique') document.querySelectorAll('.tab-button')[2].classList.add('active');
-        if(tabId === 'budget') updateBudget();
-        if(tabId === 'historique') renderHistorique();
+        if (tabId === 'paiement') document.querySelectorAll('.tab-button')[0].classList.add('active');
+        else if (tabId === 'budget') document.querySelectorAll('.tab-button')[1].classList.add('active');
+        else if (tabId === 'historique') document.querySelectorAll('.tab-button')[2].classList.add('active');
+        if (tabId === 'budget') updateBudget();
+        if (tabId === 'historique') renderHistorique();
     }
 
+    // =============================================
+    // 12. GESTION PWA (installation)
+    // =============================================
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const pwaStatus = document.getElementById('pwa-status');
+        const pwaMessage = document.getElementById('pwa-message');
+        const installButton = document.getElementById('install-button');
+        if (pwaStatus && pwaMessage && installButton) {
+            pwaStatus.style.display = 'block';
+            pwaMessage.textContent = 'Cette application peut être installée sur votre appareil.';
+            installButton.style.display = 'inline-block';
+        }
+    });
+
+    document.getElementById('install-button')?.addEventListener('click', () => {
+        if (!deferredPrompt) return;
+        const pwaMessage = document.getElementById('pwa-message');
+        const installButton = document.getElementById('install-button');
+        if (pwaMessage) pwaMessage.textContent = 'Installation en cours…';
+        if (installButton) installButton.style.display = 'none';
+
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                if (pwaMessage) pwaMessage.textContent = 'Application installée avec succès !';
+            } else {
+                if (pwaMessage) pwaMessage.textContent = 'Installation annulée.';
+            }
+            deferredPrompt = null;
+            setTimeout(() => {
+                const pwaStatus = document.getElementById('pwa-status');
+                if (pwaStatus) pwaStatus.style.display = 'none';
+            }, 3000);
+        });
+    });
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        const pwaStatus = document.getElementById('pwa-status');
+        if (pwaStatus) pwaStatus.style.display = 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker enregistré', reg.scope))
+                .catch(err => console.log('Échec enregistrement SW', err));
+        });
+    }
+
+    // =============================================
+    // 13. ÉCOUTEURS & INITIALISATION
+    // =============================================
     document.getElementById('nom-parent')?.addEventListener('input', refreshParentStatus);
     document.getElementById('telephone')?.addEventListener('input', refreshParentStatus);
     document.getElementById('montant-verse')?.addEventListener('input', () => updateTotalDue());
 
+    // Expositions globales
+    window.showTab = showTab;
+    window.ajouterEleve = ajouterEleve;
+    window.retirerEleve = retirerEleve;
+    window.enregistrerPaiement = enregistrerPaiement;
+    window.supprimerPaiement = supprimerPaiement;
+    window.imprimerHistorique = imprimerHistorique;
+    window.imprimerRapportBudget = imprimerRapportBudget;
+    window.imprimerRecap = imprimerRecap;
+    window.genererRecapGlobal = genererRecapGlobal;
+    window.fermerRecap = fermerRecap;
+    window.afficherRecap = afficherRecap;
+    window.envoyerSMS = envoyerSMS;
+    window.exporterPaiements = exporterPaiements;
+    window.importerPaiements = importerPaiements;
+    window.sauvegarderBackup = sauvegarderBackup;
+    window.exporterDonnees = exporterDonnees;
+    window.exporterRapportBudget = exporterRapportBudget;
+
     loadData();
     refreshParentStatus();
-    window.showTab = showTab;
-    window.ajouterEleve = ajouterEleve; window.retirerEleve = retirerEleve; window.enregistrerPaiement = enregistrerPaiement;
-    window.supprimerPaiement = supprimerPaiement; window.imprimerHistorique = imprimerHistorique; window.imprimerRapportBudget = imprimerRapportBudget; window.imprimerRecap = imprimerRecap;
-    window.genererRecapGlobal = genererRecapGlobal; window.fermerRecap = fermerRecap; window.afficherRecap = afficherRecap; window.envoyerSMS = envoyerSMS;
-    window.exporterPaiements = exporterPaiements; window.importerPaiements = importerPaiements; window.sauvegarderBackup = sauvegarderBackup; window.exporterDonnees = exporterDonnees; window.exporterRapportBudget = exporterRapportBudget;
-</script>
+</script> 
 
 </body>
 </html>
