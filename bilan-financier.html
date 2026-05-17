@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEE CES EKALI 1 - Générateur de Bilans Financiers</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #eef2f5;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 32px 32px 24px 24px;
+            margin-bottom: 28px;
+        }
+        .header h1 { font-size: 1.7rem; letter-spacing: -0.3px; }
+        .header p { opacity: 0.9; margin-top: 8px; font-size: 0.95rem; }
+
+        /* Cartes */
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-left: 5px solid #2e7d32;
+            padding-left: 16px;
+            margin-bottom: 1.2rem;
+        }
+        .grid-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 20px 0 10px;
+        }
+        button {
+            background: #2e7d32;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 48px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button:hover { transform: translateY(-2px); background: #1b5e20; }
+        .btn-secondary { background: #2c3e66; }
+        .btn-outline { background: #f4f7fb; color: #1e4620; border: 1px solid #cbdde6; box-shadow: none; }
+        .btn-outline:hover { background: #e6f0e6; }
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin: 25px 0 30px;
+        }
+        .stat-card {
+            background: #f8fafd;
+            border-radius: 28px;
+            padding: 1.2rem 1.8rem;
+            flex: 1;
+            text-align: center;
+            border: 1px solid #e0e9f0;
+        }
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1e4b2e;
+        }
+        .stat-label {
+            color: #2c3e4e;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        .filter-group {
+            background: #f9fbfd;
+            padding: 18px 20px;
+            border-radius: 28px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 20px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-item label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #2c5a2e;
+        }
+        input, select {
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.85rem;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #eef2f7;
+            font-weight: 600;
+        }
+        .recap-container {
+            background: #fefef7;
+            border-radius: 28px;
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+            border: 1px solid #e2e8dd;
+            display: none;
+        }
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 40px;
+            height: 28px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .progress-fill {
+            background: #2e7d32;
+            width: 0%;
+            height: 100%;
+            color: white;
+            line-height: 28px;
+            padding-left: 12px;
+            font-weight: bold;
+        }
+        hr {
+            margin: 20px 0;
+            border-color: #ecf3f9;
+        }
+        .badge {
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: #4a627a;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header no-print">
+        <h1>📊 APEE CES D'EKALI 1 - MFOU</h1>
+        <p>Générateur de bilans financiers · Cotisations 2025/2026 · Export PDF & JSON</p>
+        <div style="margin-top: 12px; font-size:0.8rem;">📌 Module indépendant – rapports complets, statistiques et archives</div>
+    </div>
+
+    <!-- CARD PRINCIPALE : GESTION DES DONNÉES & BILANS -->
+    <div class="card no-print">
+        <div class="card-title">📁 Données de cotisations</div>
+        <p style="margin-bottom: 16px;">Importez/exportez l'historique des paiements (format JSON) pour générer des bilans fiables.</p>
+        <div class="grid-buttons">
+            <button id="btnImporter" class="btn-outline">📂 Importer données (JSON)</button>
+            <button id="btnExporterDonnees">📎 Exporter toutes les données (JSON)</button>
+            <button id="btnSauvegarderBackup">💾 Sauvegarde complète</button>
+        </div>
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <div class="filter-group" style="margin-top: 15px;">
+            <div class="filter-item"><label>📅 Date début</label><input type="date" id="dateDebutPeriode"></div>
+            <div class="filter-item"><label>📅 Date fin</label><input type="date" id="dateFinPeriode"></div>
+            <div><button id="btnFiltrerPeriode" class="btn-secondary">🔍 Appliquer filtre période</button></div>
+            <div><button id="btnResetFiltre" class="btn-outline">♻️ Réinitialiser</button></div>
+        </div>
+        <div class="stats" id="statsGlobales"></div>
+    </div>
+
+    <!-- ZONE DE BILANS AVANCÉS -->
+    <div class="card">
+        <div class="card-title">📄 Bilans officiels (PDF / JSON)</div>
+        <div class="grid-buttons">
+            <button id="btnBilanGeneralPDF">📑 Bilan complet PDF</button>
+            <button id="btnBilanGeneralJSON">📎 Bilan complet JSON (structuré)</button>
+            <button id="btnBilanPeriodePDF">📅 Bilan par période PDF</button>
+            <button id="btnBilanPeriodeJSON">📅 Bilan période JSON</button>
+        </div>
+        <div style="margin-top: 20px;">
+            <button id="btnAfficherRecapTextuel" class="btn-secondary">📋 Afficher récapitulatif détaillé</button>
+            <button id="btnImprimerRecap" class="btn-outline">🖨️ Imprimer récapitulatif</button>
+        </div>
+    </div>
+
+    <!-- TABLEAU DE BORD BUDGET + IMPACT -->
+    <div class="card">
+        <div class="card-title">💰 Impact budgétaire – Objectif 1 250 000 FCFA</div>
+        <div id="budgetImpactContainer">
+            <div class="stats" id="budgetStats"></div>
+            <div class="progress-container">
+                <div class="progress-bar"><div class="progress-fill" id="progressFillBudget">0%</div></div>
+            </div>
+        </div>
+        <hr>
+        <h3 style="margin-bottom: 12px;">📆 Répartition mensuelle des recettes</h3>
+        <div id="tableMensuelleContainer"></div>
+    </div>
+
+    <!-- ZONE RECAPITULATIF GLOBAL (affichage/impression) -->
+    <div id="recapGlobalDiv" class="recap-container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>📋 Récapitulatif intégral des cotisations</h2>
+            <button id="btnFermerRecap" class="btn-outline" style="padding: 6px 18px;">✖️ Fermer</button>
+        </div>
+        <p>Date de génération : <span id="dateRecapText"></span></p>
+        <div id="contenuRecapComplet"></div>
+        <div class="grid-buttons" style="margin-top: 20px;">
+            <button id="btnExportRecapPDF">⬇️ Télécharger ce récapitulatif (PDF)</button>
+            <button id="btnImprimerRecapInterne">🖨️ Imprimer</button>
+        </div>
+    </div>
+
+    <div class="footer-note no-print">
+        📌 Les données sont stockées localement dans votre navigateur. Exportez régulièrement vos paiements pour archiver.
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. MODÈLE DE DONNÉES & GESTION STOCKAGE LOCAL
+    // --------------------------------------------------------------
+    let payments = [];          // tableau des paiements
+    const COTISATION_UNITAIRE = 12500;
+    const OBJECTIF_RECETTES = 1250000;
+
+    // Helper date
+    function formatDateFR(dateStr) {
+        if (!dateStr) return '-';
+        let d = dateStr.split(' ')[0].split('-');
+        return `${d[2]}/${d[1]}/${d[0]}`;
+    }
+
+    function normalizePayment(p) {
+        return {
+            id: p.id || Date.now(),
+            parentNom: p.parentNom || p.nomParent || '',
+            telephone: p.telephone || '',
+            adresse: p.adresse || '',
+            students: Array.isArray(p.students) ? p.students : (Array.isArray(p.eleves) ? p.eleves.map(e => ({ nom: e.nom || '', classe: e.classe || e.cl || '' })) : []),
+            montantVerse: p.montantVerse || 0,
+            resteAPayer: p.resteAPayer ?? p.restePayer ?? 0,
+            date: p.date || new Date().toISOString().slice(0, 19).replace('T', ' '),
+            observations: p.observations || ''
+        };
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('apee_payments_bilan', JSON.stringify(payments));
+    }
+
+    function loadFromLocal() {
+        const stored = localStorage.getItem('apee_payments_bilan');
+        if (stored) {
+            try {
+                let raw = JSON.parse(stored);
+                payments = Array.isArray(raw) ? raw.map(normalizePayment) : [];
+            } catch(e) { payments = []; }
+        } else {
+            // données d'exemple pour démonstration (optionnel mais utile)
+            payments = [];
+        }
+        refreshAllUI();
+    }
+
+    // Filtre période (dates globales)
+    let filterDateDebut = null;
+    let filterDateFin = null;
+
+    function getFilteredPayments() {
+        if (!filterDateDebut && !filterDateFin) return payments;
+        return payments.filter(p => {
+            if (!p.date) return true;
+            const datePart = p.date.split(' ')[0];
+            if (filterDateDebut && datePart < filterDateDebut) return false;
+            if (filterDateFin && datePart > filterDateFin) return false;
+            return true;
+        });
+    }
+
+    // Statistiques globales (basées sur filtre éventuel)
+    function computeStats(paymentsArray) {
+        const totalVersements = paymentsArray.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
+        const totalRestant = paymentsArray.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
+        const nbParents = paymentsArray.length;
+        const nbEleves = paymentsArray.reduce((sum, p) => sum + (p.students?.length || 0), 0);
+        const taux = OBJECTIF_RECETTES > 0 ? (totalVersements / OBJECTIF_RECETTES) * 100 : 0;
+        return { totalVersements, totalRestant, nbParents, nbEleves, taux: taux.toFixed(1) };
+    }
+
+    function updateStatsUI() {
+        const filtered = getFilteredPayments();
+        const stats = computeStats(filtered);
+        const statsContainer = document.getElementById('statsGlobales');
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+                <div class="stat-card"><div class="stat-number">${stats.totalVersements.toLocaleString()} FCFA</div><div class="stat-label">Total encaissé (période)</div></div>
+                <div class="stat-card"><div class="stat-number">${stats.totalRestant.toLocaleString()} FCFA</div><div class="stat-label">Reste à recouvrer</div></div>
+                <div class="stat-card"><div class="stat-number">${stats.nbParents}</div><div class="stat-label">Parents / transactions</div></div>
+                <div class="stat-card"><div class="stat-number">${stats.nbEleves}</div><div class="stat-label">Élèves inscrits</div></div>
+            `;
+        }
+        // budgetStats
+        const budgetStatsDiv = document.getElementById('budgetStats');
+        if (budgetStatsDiv) {
+            budgetStatsDiv.innerHTML = `
+                <div class="stat-card"><div class="stat-number">${stats.totalVersements.toLocaleString()} FCFA</div><div class="stat-label">Recettes réalisées</div></div>
+                <div class="stat-card"><div class="stat-number">${OBJECTIF_RECETTES.toLocaleString()} FCFA</div><div class="stat-label">Objectif cotisations (100 élèves)</div></div>
+                <div class="stat-card"><div class="stat-number">${stats.taux}%</div><div class="stat-label">Taux d’atteinte</div></div>
+            `;
+            const progressFill = document.getElementById('progressFillBudget');
+            if (progressFill) {
+                let percent = Math.min(parseFloat(stats.taux), 100);
+                progressFill.style.width = percent + '%';
+                progressFill.innerText = percent.toFixed(0) + '%';
+            }
+        }
+        // tableau mensuel
+        const moisMap = new Map();
+        filtered.forEach(p => {
+            if (p.date) {
+                const [datePart] = p.date.split(' ');
+                const [year, month] = datePart.split('-');
+                const key = `${year}-${month}`;
+                if (!moisMap.has(key)) moisMap.set(key, { nb: 0, montant: 0, eleves: 0 });
+                const entry = moisMap.get(key);
+                entry.nb++;
+                entry.montant += (p.montantVerse || 0);
+                entry.eleves += (p.students?.length || 0);
+            }
+        });
+        const tableContainer = document.getElementById('tableMensuelleContainer');
+        if (tableContainer) {
+            if (moisMap.size === 0) {
+                tableContainer.innerHTML = '<p class="badge">Aucune donnée sur cette période</p>';
+            } else {
+                let html = `<table><thead><tr><th>Mois</th><th>Nb paiements</th><th>Montant perçu</th><th>Élèves concernés</th></tr></thead><tbody>`;
+                for (let [mois, data] of Array.from(moisMap.entries()).sort()) {
+                    const [annee, moisNum] = mois.split('-');
+                    const moisNom = new Date(annee, moisNum-1, 1).toLocaleString('fr-FR', { month: 'long' });
+                    html += `<tr><td>${moisNom} ${annee}</td><td>${data.nb}</td><td>${data.montant.toLocaleString()} FCFA</td><td>${data.eleves}</td></tr>`;
+                }
+                html += `</tbody></table>`;
+                tableContainer.innerHTML = html;
+            }
+        }
+    }
+
+    function refreshAllUI() {
+        updateStatsUI();
+    }
+
+    // --------------------------------------------------------------
+    // 2. GÉNÉRATION BILAN COMPLET PDF (avec toutes les transactions)
+    // --------------------------------------------------------------
+    function genererBilanCompletPDF() {
+        const filtered = getFilteredPayments();
+        const stats = computeStats(filtered);
+        const dateGeneration = new Date().toLocaleString('fr-FR');
+        let rowsHtml = '';
+        filtered.forEach(p => {
+            const elevesList = (p.students || []).map(s => `${s.nom} (${s.classe})`).join(', ') || '-';
+            rowsHtml += `<tr>
+                <td>${escapeHtml(p.parentNom)}</td>
+                <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
+                <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
+                <td>${elevesList}</td>
+                <td>${formatDateFR(p.date)}</td>
+            </tr>`;
+        });
+        const element = document.createElement('div');
+        element.innerHTML = `
+            <div style="font-family: sans-serif; padding: 20px;">
+                <h1 style="text-align:center;">APEE CES D'EKALI 1 - Bilan financier</h1>
+                <p style="text-align:center;">Généré le ${dateGeneration} • Période ${filterDateDebut || 'début'} → ${filterDateFin || 'aujourd\'hui'}</p>
+                <div style="display:flex; gap:20px; justify-content:center; margin:25px 0;">
+                    <div><strong>Total perçu :</strong> ${stats.totalVersements.toLocaleString()} FCFA</div>
+                    <div><strong>Reste à payer :</strong> ${stats.totalRestant.toLocaleString()} FCFA</div>
+                    <div><strong>Parents :</strong> ${stats.nbParents}</div>
+                    <div><strong>Objectif :</strong> ${OBJECTIF_RECETTES.toLocaleString()} FCFA (${stats.taux}%)</div>
+                </div>
+                <h3>Détail des cotisations</h3>
+                <table border="1" style="width:100%; border-collapse:collapse;">
+                    <thead><tr><th>Parent</th><th>Montant versé</th><th>Reste à payer</th><th>Élève(s)</th><th>Date</th></tr></thead>
+                    <tbody>${rowsHtml || '<tr><td colspan="5">Aucune transaction</td></tr>'}</tbody>
+                </table>
+                <p style="margin-top:30px;"><em>Cotisation unitaire : ${COTISATION_UNITAIRE.toLocaleString()} FCFA / élève</em></p>
+                <p>Association des Parents d'Élèves – CES EKALI 1, MFOU.</p>
+            </div>
+        `;
+        html2pdf().set({ margin: 10, filename: `bilan_APEE_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
+    }
+
+    function genererBilanCompletJSON() {
+        const filtered = getFilteredPayments();
+        const stats = computeStats(filtered);
+        const exportObj = {
+            meta: { version: "1.0", dateExport: new Date().toISOString(), objectifCotisations: OBJECTIF_RECETTES, cotisationParEleve: COTISATION_UNITAIRE },
+            resume: { totalEncaissement: stats.totalVersements, totalRestant: stats.totalRestant, nbParents: stats.nbParents, nbEleves: stats.nbEleves, tauxAtteinte: stats.taux },
+            paiements: filtered.map(p => ({
+                parent: p.parentNom,
+                telephone: p.telephone,
+                montantVerse: p.montantVerse,
+                reste: p.resteAPayer,
+                date: p.date,
+                eleves: p.students,
+                observations: p.observations
+            }))
+        };
+        const dataStr = JSON.stringify(exportObj, null, 2);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
+        a.download = `bilan_complet_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+    }
+
+    // Bilan période (selon les dates de filtre)
+    function genererBilanPeriodePDF() {
+        const debut = document.getElementById('dateDebutPeriode').value;
+        const fin = document.getElementById('dateFinPeriode').value;
+        if (!debut && !fin) {
+            alert("Veuillez définir une période via les champs date début/fin ci-dessus.");
+            return;
+        }
+        let filtered = payments;
+        if (debut) filtered = filtered.filter(p => p.date && p.date.split(' ')[0] >= debut);
+        if (fin) filtered = filtered.filter(p => p.date && p.date.split(' ')[0] <= fin);
+        const totalPeriode = filtered.reduce((s,p) => s + (p.montantVerse||0),0);
+        const restantPeriode = filtered.reduce((s,p) => s + (p.resteAPayer||0),0);
+        const element = document.createElement('div');
+        element.innerHTML = `
+            <h2 style="text-align:center;">Bilan APEE par période</h2>
+            <p>Du ${debut || 'début'} au ${fin || 'aujourd\'hui'}</p>
+            <p><strong>Montant collecté :</strong> ${totalPeriode.toLocaleString()} FCFA</p>
+            <p><strong>Reste à payer (période) :</strong> ${restantPeriode.toLocaleString()} FCFA</p>
+            <p>Transactions : ${filtered.length}</p>
+            <table border="1"><thead><tr><th>Parent</th><th>Montant versé</th><th>Date</th></tr></thead><tbody>${filtered.map(p=>`<tr><td>${escapeHtml(p.parentNom)}</td><td>${(p.montantVerse||0).toLocaleString()} FCFA</td><td>${formatDateFR(p.date)}</td></tr>`).join('')}</tbody></table>
+        `;
+        html2pdf().set({ margin: 10, filename: `bilan_periode_${debut || 'debut'}_${fin || 'fin'}.pdf` }).from(element).save();
+    }
+
+    function genererBilanPeriodeJSON() {
+        const debut = document.getElementById('dateDebutPeriode').value;
+        const fin = document.getElementById('dateFinPeriode').value;
+        let filtered = payments;
+        if (debut) filtered = filtered.filter(p => p.date && p.date.split(' ')[0] >= debut);
+        if (fin) filtered = filtered.filter(p => p.date && p.date.split(' ')[0] <= fin);
+        const data = { periode: { debut: debut || null, fin: fin || null }, totalCollecte: filtered.reduce((s,p)=>s+p.montantVerse,0), paiements: filtered };
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)], {type:'application/json'}));
+        a.download = `bilan_periode_${debut || 'init'}_${fin || 'end'}.json`;
+        a.click();
+    }
+
+    // Récapitulatif textuel (affichage dans la div)
+    function afficherRecapTextuel() {
+        if (payments.length === 0) { alert("Aucune donnée de paiement. Importez un fichier JSON."); return; }
+        let htmlTable = `<table style="width:100%"><thead><tr><th>Parent</th><th>Montant versé</th><th>Reste</th><th>Élèves</th><th>Date</th></tr></thead><tbody>`;
+        payments.forEach(p => {
+            const elevesStr = (p.students || []).map(s => s.nom).join(', ') || '-';
+            htmlTable += `<tr><td>${escapeHtml(p.parentNom)}</td><td>${(p.montantVerse||0).toLocaleString()} FCFA</td><td>${(p.resteAPayer||0).toLocaleString()} FCFA</td><td>${elevesStr}</td><td>${formatDateFR(p.date)}</td></tr>`;
+        });
+        const totalAll = payments.reduce((s,p)=>s+(p.montantVerse||0),0);
+        htmlTable += `<tr style="background:#eef2fa; font-weight:bold;"><td colspan="2">TOTAL GÉNÉRAL</td><td colspan="3">${totalAll.toLocaleString()} FCFA</td></tr>`;
+        htmlTable += `</tbody></table>`;
+        document.getElementById('contenuRecapComplet').innerHTML = htmlTable;
+        document.getElementById('dateRecapText').innerText = new Date().toLocaleString('fr-FR');
+        document.getElementById('recapGlobalDiv').style.display = 'block';
+    }
+
+    // Export du récap visible en PDF
+    function exportRecapVisiblePDF() {
+        const recapDiv = document.getElementById('recapGlobalDiv');
+        if (!recapDiv || recapDiv.style.display === 'none') { alert("Veuillez d'abord afficher le récapitulatif (bouton 'Afficher récapitulatif détaillé')."); return; }
+        const clone = recapDiv.cloneNode(true);
+        clone.querySelectorAll('button, .grid-buttons').forEach(el => el.remove());
+        html2pdf().set({ margin: 10, filename: `recap_global_APEE.pdf` }).from(clone).save();
+    }
+
+    function imprimerRecapExterne() {
+        const recapDiv = document.getElementById('recapGlobalDiv');
+        if (!recapDiv || recapDiv.style.display === 'none') { alert("Affichez d'abord le récapitulatif."); return; }
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<html><head><title>Récap APEE</title><style>body{font-family:sans-serif;} table{border-collapse:collapse;} td,th{border:1px solid gray; padding:6px;}</style></head><body>${recapDiv.cloneNode(true).innerHTML}</body></html>`);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // --------------------------------------------------------------
+    // 3. IMPORT / EXPORT JSON & BACKUP
+    // --------------------------------------------------------------
+    function importerDonnees() {
+        const input = document.getElementById('fileInput');
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (Array.isArray(imported)) {
+                        payments = imported.map(normalizePayment);
+                        saveToLocal();
+                        refreshAllUI();
+                        alert(`Import réussi : ${payments.length} paiements chargés.`);
+                    } else if (imported.payments && Array.isArray(imported.payments)) {
+                        payments = imported.payments.map(normalizePayment);
+                        saveToLocal();
+                        refreshAllUI();
+                        alert("Backup restauré avec succès.");
+                    } else { alert("Format JSON non reconnu (doit être un tableau de paiements)."); }
+                } catch(err) { alert("Erreur lecture fichier JSON"); }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    function exporterToutesDonnees() {
+        const dataStr = JSON.stringify(payments, null, 2);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
+        a.download = `apee_paiements_export_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+        a.click();
+    }
+
+    function backupComplet() {
+        const backup = { version: "2.0", date: new Date().toISOString(), payments };
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+        a.download = `backup_apee_bilan_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+    }
+
+    function appliquerFiltrePeriode() {
+        const debut = document.getElementById('dateDebutPeriode').value;
+        const fin = document.getElementById('dateFinPeriode').value;
+        filterDateDebut = debut;
+        filterDateFin = fin;
+        refreshAllUI();
+    }
+
+    function resetFiltre() {
+        document.getElementById('dateDebutPeriode').value = '';
+        document.getElementById('dateFinPeriode').value = '';
+        filterDateDebut = null;
+        filterDateFin = null;
+        refreshAllUI();
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+    // Initialisation des événements
+    window.onload = () => {
+        loadFromLocal();
+        document.getElementById('btnImporter').addEventListener('click', importerDonnees);
+        document.getElementById('btnExporterDonnees').addEventListener('click', exporterToutesDonnees);
+        document.getElementById('btnSauvegarderBackup').addEventListener('click', backupComplet);
+        document.getElementById('btnBilanGeneralPDF').addEventListener('click', genererBilanCompletPDF);
+        document.getElementById('btnBilanGeneralJSON').addEventListener('click', genererBilanCompletJSON);
+        document.getElementById('btnBilanPeriodePDF').addEventListener('click', genererBilanPeriodePDF);
+        document.getElementById('btnBilanPeriodeJSON').addEventListener('click', genererBilanPeriodeJSON);
+        document.getElementById('btnAfficherRecapTextuel').addEventListener('click', afficherRecapTextuel);
+        document.getElementById('btnFermerRecap').addEventListener('click', () => document.getElementById('recapGlobalDiv').style.display = 'none');
+        document.getElementById('btnExportRecapPDF').addEventListener('click', exportRecapVisiblePDF);
+        document.getElementById('btnImprimerRecapInterne').addEventListener('click', imprimerRecapExterne);
+        document.getElementById('btnImprimerRecap').addEventListener('click', imprimerRecapExterne);
+        document.getElementById('btnFiltrerPeriode').addEventListener('click', appliquerFiltrePeriode);
+        document.getElementById('btnResetFiltre').addEventListener('click', resetFiltre);
+    };
+</script>
+</body>
+</html>
