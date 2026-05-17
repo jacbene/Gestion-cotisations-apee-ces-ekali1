@@ -197,9 +197,10 @@
         <p>Générateur de bilans financiers · Cotisations 2025/2026 · Export PDF & JSON</p>
         <div style="margin-top: 12px; font-size:0.8rem;">📌 Module indépendant – rapports complets, statistiques et archives</div>
     </div>
-
+    
     <!-- CARD PRINCIPALE : GESTION DES DONNÉES & BILANS -->
     <div class="card no-print">
+        <a href="index.html" style="color: #2e7d32; text-decoration: none;">← Accueil</a>
         <div class="card-title">📁 Données de cotisations</div>
         <p style="margin-bottom: 16px;">Importez/exportez l'historique des paiements (format JSON) pour générer des bilans fiables.</p>
         <div class="grid-buttons">
@@ -280,11 +281,6 @@
         return `${d[2]}/${d[1]}/${d[0]}`;
     }
 
-    function escapeHtml(str) { 
-        if(!str) return ''; 
-        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
-    }
-
     function normalizePayment(p) {
         return {
             id: p.id || Date.now(),
@@ -311,6 +307,7 @@
                 payments = Array.isArray(raw) ? raw.map(normalizePayment) : [];
             } catch(e) { payments = []; }
         } else {
+            // données d'exemple pour démonstration (optionnel mais utile)
             payments = [];
         }
         refreshAllUI();
@@ -412,7 +409,7 @@
         const dateGeneration = new Date().toLocaleString('fr-FR');
         let rowsHtml = '';
         filtered.forEach(p => {
-            const elevesList = (p.students || []).map(s => `${escapeHtml(s.nom)} (${escapeHtml(s.classe)})`).join(', ') || '-';
+            const elevesList = (p.students || []).map(s => `${s.nom} (${s.classe})`).join(', ') || '-';
             rowsHtml += `<tr>
                 <td>${escapeHtml(p.parentNom)}</td>
                 <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
@@ -511,7 +508,6 @@
         let htmlTable = `<table style="width:100%"><thead><tr><th>Parent</th><th>Montant versé</th><th>Reste</th><th>Élèves</th><th>Date</th></tr></thead><tbody>`;
         payments.forEach(p => {
             const elevesStr = (p.students || []).map(s => s.nom).join(', ') || '-';
-            // Ligne complète - correction de la ligne incomplète signalée
             htmlTable += `<tr><td>${escapeHtml(p.parentNom)}</td><td>${(p.montantVerse||0).toLocaleString()} FCFA</td><td>${(p.resteAPayer||0).toLocaleString()} FCFA</td><td>${elevesStr}</td><td>${formatDateFR(p.date)}</td></tr>`;
         });
         const totalAll = payments.reduce((s,p)=>s+(p.montantVerse||0),0);
@@ -535,7 +531,6 @@
         const recapDiv = document.getElementById('recapGlobalDiv');
         if (!recapDiv || recapDiv.style.display === 'none') { alert("Affichez d'abord le récapitulatif."); return; }
         const printWindow = window.open('', '_blank');
-        // Fonction complète - correction de la ligne incomplète signalée
         printWindow.document.write(`<html><head><title>Récap APEE</title><style>body{font-family:sans-serif;} table{border-collapse:collapse;} td,th{border:1px solid gray; padding:6px;}</style></head><body>${recapDiv.cloneNode(true).innerHTML}</body></html>`);
         printWindow.document.close();
         printWindow.print();
@@ -602,6 +597,8 @@
         refreshAllUI();
     }
 
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
     // Initialisation des événements
     window.onload = () => {
         loadFromLocal();
@@ -621,5 +618,19 @@
         document.getElementById('btnResetFiltre').addEventListener('click', resetFiltre);
     };
 </script>
+      <!-- ... fin du contenu de la page ... -->
+
+    <script>
+        // Enregistrement du Service Worker pour la PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                    console.log('Service Worker enregistré avec succès :', reg);
+                }).catch(function(err) {
+                    console.error('Erreur lors de l\'enregistrement du Service Worker :', err);
+                });
+            });
+        }
+    </script>  
 </body>
 </html>
