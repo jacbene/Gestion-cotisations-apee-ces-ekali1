@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Gestion & Bilans - APEE CES EKALI 1</title>
+    <!-- html2pdf Bundle (pour générer les PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 1.2rem 2rem;
+        }
+        .header__title { font-size: 1.6rem; letter-spacing: -0.3px; }
+        .header__subtitle { font-size: 1rem; font-weight: 400; opacity: 0.9; margin-top: 6px; }
+        .header__date-range {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
+        .date-range__item input {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 500;
+        }
+        .pwa-status {
+            margin-top: 12px;
+            background: #ffc107;
+            color: #1e3a2f;
+            padding: 6px 12px;
+            border-radius: 60px;
+            display: inline-flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        .pwa-button {
+            background: #2c6e2c;
+            border: none;
+            padding: 4px 14px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            background: #f8fafc;
+            padding: 1rem 2rem 0 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 40px 40px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #2d3e50;
+        }
+        .tab-button.active {
+            background: white;
+            color: #2e7d32;
+            border-bottom: 3px solid #2e7d32;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.02);
+        }
+        .tab-content { display: none; padding: 2rem; background: white; }
+        .tab-content.active { display: block; }
+
+        /* Cartes */
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #edf2f7;
+        }
+        .card__title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-left: 5px solid #2e7d32;
+            padding-left: 14px;
+            margin-bottom: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 6px;
+            color: #1e2a3a;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 3px rgba(46,125,50,0.2);
+        }
+        button {
+            background: #2e7d32;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            margin-top: 8px;
+            margin-right: 8px;
+        }
+        button.secondary {
+            background: #475569;
+        }
+        button.sms {
+            background: #0f5b6e;
+        }
+        button.print {
+            background: #2c3e66;
+        }
+        button.delete-student {
+            background: #b91c1c;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+        }
+        .student-list {
+            margin-top: 20px;
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 20px;
+        }
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 40px;
+            margin-bottom: 8px;
+            border: 1px solid #e4e7eb;
+        }
+        .montant-info {
+            background: #e9f5e9;
+            padding: 10px;
+            border-radius: 18px;
+            margin: 15px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+        .parent-info {
+            background: #fef9e3;
+            padding: 12px;
+            border-radius: 18px;
+            margin-bottom: 18px;
+        }
+        .paiement-dette {
+            background: #ffedea;
+            border-left: 5px solid #dc2626;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .budget-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 1.2rem;
+            flex: 1;
+            text-align: center;
+            border: 1px solid #e2edf2;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e4b2e;
+        }
+        .progress-container {
+            margin: 30px 0;
+        }
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 40px;
+            height: 28px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #2e7d32;
+            width: 0%;
+            height: 100%;
+            color: white;
+            line-height: 28px;
+            padding-left: 12px;
+            font-weight: bold;
+            transition: width 0.4s;
+        }
+        .recap-container {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .file-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .file-button {
+            background: #2c3e66;
+        }
+        .footer {
+            padding: 1.5rem 2rem;
+            background: #f7f9fc;
+            border-top: 1px solid #e4e9f0;
+        }
+        .instructions {
+            font-size: 0.8rem;
+            color: #2c3e4e;
+        }
+        .recap-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        @media print {
+            .no-print { display: none; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .tab-content { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header class="header no-print">
+        <h1 class="header__title">APEE DU CES D'EKALI 1 - MFOU</h1>
+        <h2 class="header__subtitle">Gestion des cotisations • Bilans PDF & JSON • Budget prévisionnel 2025/2026</h2>
+        <div class="header__date-range">
+            <div class="date-range__item">Semaine du : <input type="date" id="date-debut"></div>
+            <div class="date-range__item">au : <input type="date" id="date-fin"></div>
+        </div>
+        <div id="pwa-status" class="pwa-status" style="display: none;">
+            <span id="pwa-message"></span>
+            <button id="install-button" class="pwa-button">Installer l'appli</button>
+        </div>
+    </header>
+
+    <div class="tabs no-print">
+        <button class="tab-button active" onclick="showTab('paiement')">📋 Paiement cotisations</button>
+        <button class="tab-button" onclick="showTab('budget')">📊 Impact budget & objectifs</button>
+        <button class="tab-button" onclick="showTab('bilans')">📄 Bilans PDF / JSON</button>
+        <button class="tab-button" onclick="showTab('historique')">📜 Historique complet</button>
+    </div>
+
+    <!-- ========= ONGLET PAIEMENT ========= -->
+    <div id="paiement" class="tab-content active">
+        <div class="card">
+            <h2 class="card__title">📁 Gestion des fichiers (export/import JSON)</h2>
+            <div class="file-buttons">
+                <button class="file-button" onclick="exporterPaiements()">📥 Exporter paiements (JSON)</button>
+                <button class="file-button" onclick="importerPaiements()">📤 Importer paiements (JSON)</button>
+                <button class="file-button" onclick="sauvegarderBackup()">💾 Backup complet JSON</button>
+                <input type="file" id="file-input" accept=".json" style="display:none">
+            </div>
+            <div class="file-info"><small>✔️ Les fichiers sont sauvegardés au format JSON (compatible bilans).</small></div>
+        </div>
+        
+        <div class="card">
+            <h2 class="card__title">👤 Parent / Tuteur</h2>
+            <div id="info-parent" class="parent-info"><strong>Statut :</strong> <span id="statut-parent"></span><div id="details-parent"></div></div>
+            <div id="paiement-dette" class="paiement-dette"><strong>⚠ Paiement de dette uniquement</strong><p>Solde antérieur à régulariser.</p></div>
+            <div class="form-group"><label>Nom complet *</label><input type="text" id="nom-parent" placeholder="Nom et prénom"></div>
+            <div class="form-group"><label>Téléphone *</label><input type="tel" id="telephone" placeholder="699887766"></div>
+            <div class="form-group"><label>Adresse</label><textarea id="adresse" rows="2"></textarea></div>
+            <div class="montant-info">Cotisation par élève : <strong>12 500 FCFA</strong></div>
+        </div>
+
+        <div class="card">
+            <h2 class="card__title">➕ Ajouter un élève</h2>
+            <div class="form-group"><label>Nom de l'élève</label><input type="text" id="nom-eleve" placeholder="Nom et prénom"></div>
+            <div class="form-group"><label>Classe</label><input type="text" id="classe" placeholder="Ex: 3ème"></div>
+            <button onclick="ajouterEleve()">+ Ajouter cet élève</button>
+            <div class="student-list"><h3>Élèves inscrits</h3><div id="liste-eleves"></div></div>
+        </div>
+
+        <div class="card">
+            <h2 class="card__title">💰 Paiement</h2>
+            <div class="form-group"><label>Montant total à payer</label><input type="text" id="montant-total" readonly value="0 FCFA"></div>
+            <div class="form-group"><label>Montant versé (FCFA)</label><input type="number" id="montant-verse" min="0" value="0"></div>
+            <div class="form-group"><label>Reste à payer</label><input type="text" id="reste-payer" readonly value="0 FCFA"></div>
+            <div class="form-group"><label>Observations</label><textarea id="observations" rows="2"></textarea></div>
+            <div class="actions">
+                <button onclick="enregistrerPaiement()">✅ Enregistrer paiement</button>
+                <button class="sms" onclick="envoyerSMS()">📱 SMS récapitulatif</button>
+                <button class="secondary" onclick="afficherRecap()">📑 Récap global</button>
+            </div>
+        </div>
+        <div class="card"><h2 class="card__title">🕒 Derniers paiements</h2><div id="derniers-paiements"></div></div>
+    </div>
+
+    <!-- ========= ONGLET BUDGET / IMPACT ========= -->
+    <div id="budget" class="tab-content">
+        <div class="card">
+            <h2>📈 Impact des cotisations sur le budget prévisionnel 2025/2026</h2>
+            <div class="budget-stats">
+                <div class="stat-box"><h3>Objectif Cotisations</h3><div class="stat-value" id="objectif-recettes">1 250 000 FCFA</div><small>100 élèves × 12 500 FCFA</small></div>
+                <div class="stat-box"><h3>Recettes réalisées</h3><div class="stat-value" id="recettes-realisees">0 FCFA</div><small>Total perçu</small></div>
+                <div class="stat-box"><h3>Taux de réalisation</h3><div class="stat-value" id="taux-realisation">0%</div><small>Objectif atteint</small></div>
+            </div>
+            <div class="progress-container"><h3>Progression</h3><div class="progress-bar"><div class="progress-fill" id="progress-bar-fill">0%</div></div></div>
+            <h3>📅 Détail mensuel des recettes</h3>
+            <table id="table-mensuel-budget"><thead><tr><th>Mois</th><th>Nb paiements</th><th>Montant perçu</th><th>Élèves concernés</th></tr></thead><tbody id="details-mensuels"></tbody></table>
+            <div class="recap-actions no-print">
+                <button onclick="genererPDFBudget()">📄 Générer PDF du rapport Budget</button>
+                <button onclick="exporterBudgetJSON()">📎 Exporter données budget (JSON)</button>
+                <button onclick="imprimerRapportBudget()">🖨️ Imprimer budget</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========= ONGLET BILANS PDF / JSON (NOUVEAU) ========= -->
+    <div id="bilans" class="tab-content">
+        <div class="card">
+            <h2 class="card__title">📄 Générateur de bilans officiels (PDF & JSON)</h2>
+            <p style="margin-bottom: 20px;">Produisez un bilan financier complet (recettes, impayés, suivi des parents) aux formats PDF professionnel ou JSON exploitable.</p>
+            
+            <div style="background:#f1f9f0; padding: 18px; border-radius: 28px; margin-bottom: 25px;">
+                <h3>📊 Bilan global de l'association</h3>
+                <div class="recap-actions">
+                    <button onclick="genererBilanPDF()" style="background:#1e4b2e;">📑 Générer Bilan complet PDF</button>
+                    <button onclick="exporterBilanJSON()" style="background:#2c3e66;">📎 Exporter Bilan JSON (données structurées)</button>
+                    <button onclick="genererRecapGlobal(); showRecapBlock()" class="secondary">📋 Aperçu texte du bilan</button>
+                </div>
+                <small>Le PDF inclut : tableau des cotisations, total perçu, reste à recouvrer, nombre de parents, ventilation par élève, date d'édition.</small>
+            </div>
+
+            <div style="border-top: 2px dashed #cbd5e1; margin: 20px 0;"></div>
+
+            <h3>📋 Bilan personnalisé par période (filtre dates)</h3>
+            <div class="form-group" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div><label>Date début</label><input type="date" id="bilan-date-debut"></div>
+                <div><label>Date fin</label><input type="date" id="bilan-date-fin"></div>
+                <div style="align-self: flex-end;"><button onclick="genererBilanPeriodePDF()">📅 Générer PDF par période</button></div>
+                <div style="align-self: flex-end;"><button onclick="exporterBilanPeriodeJSON()" class="file-button">📅 Exporter JSON période</button></div>
+            </div>
+            
+            <div class="recap-actions" style="margin-top: 20px;">
+                <button onclick="genererRecapGlobal(); showRecapBlock()">📋 Récapitulatif complet (affichage)</button>
+                <button onclick="imprimerRecap()">🖨️ Imprimer récapitulatif</button>
+            </div>
+        </div>
+
+        <div id="recap-global" class="recap-container" style="display: none;">
+            <h2>Récapitulatif Global des Paiements</h2>
+            <p>Date de génération : <span id="date-recap"></span></p>
+            <div id="contenu-recap"></div>
+            <div class="recap-actions">
+                <button onclick="genererPDFRecap()">⬇️ Télécharger ce récap (PDF)</button>
+                <button onclick="fermerRecap()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========= ONGLET HISTORIQUE COMPLET ========= -->
+    <div id="historique" class="tab-content">
+        <h2>📋 Historique détaillé des cotisations</h2>
+        <table id="tableau-paiements"><thead><tr><th>Parent</th><th>Téléphone</th><th>Élève(s)</th><th>Classe(s)</th><th>Montant versé</th><th>Reste</th><th>Date</th><th class="no-print">Action</th></tr></thead><tbody></tbody></table>
+        <div class="recap-actions no-print">
+            <button onclick="exporterDonnees()">📎 Exporter tout l'historique (JSON)</button>
+            <button onclick="genererPDFHistorique()">📄 PDF Historique complet</button>
+            <button onclick="imprimerHistorique()">🖨️ Imprimer historique</button>
+        </div>
+    </div>
+
+    <footer class="footer no-print">
+        <div class="instructions">
+            <strong>📌 Gestion & bilans :</strong> Utilisez l'onglet "Bilans PDF / JSON" pour générer des états officiels.<br>
+            ✅ Cotisation unitaire 12 500 FCFA • Tous les paiements sont enregistrés localement • Export JSON compatible avec tableurs.
+        </div>
+    </footer>
+</div>
+
+<script>
+    // ---------- DONNEES & CONSTANTES ----------
+    let payments = [];
+    let tempStudents = [];
+    let currentParentSolde = 0;
+    const COTISATION = 12500;
+    const OBJECTIF_RECETTES = 1250000;
+
+    // helpers dates
+    function formatDateFR(dateStr) { if(!dateStr) return '-'; const d=dateStr.split(' ')[0].split('-'); return `${d[2]}/${d[1]}/${d[0]}`; }
+    function getTodayISO() { return new Date().toISOString().slice(0,10); }
+
+    // normalisation
+    function normalizePayment(p) {
+        return {
+            id: p.id || Date.now(),
+            parentNom: p.parentNom || p.nomParent || '',
+            telephone: p.telephone || '',
+            adresse: p.adresse || '',
+            students: (Array.isArray(p.students) ? p.students : (Array.isArray(p.eleves) ? p.eleves.map(e=>({nom:e.nom||'', classe:e.classe||e.cl||''})) : [])),
+            montantVerse: p.montantVerse || 0,
+            resteAPayer: p.resteAPayer ?? p.restePayer ?? 0,
+            date: p.date || new Date().toISOString().slice(0,19).replace('T',' '),
+            observations: p.observations || ''
+        };
+    }
+
+    function saveToLocal() { localStorage.setItem('apee_payments', JSON.stringify(payments)); renderAll(); }
+    function loadFromLocal() { const stored=localStorage.getItem('apee_payments'); payments=stored?JSON.parse(stored).map(normalizePayment):[]; renderAll(); }
+
+    function renderAll() { renderHistorique(); updateBudget(); updateRecentPayments(); }
+    function renderHistorique() {
+        const tbody=document.querySelector('#tableau-paiements tbody'); if(!tbody) return;
+        if(payments.length===0){ tbody.innerHTML='<tr><td colspan="8">Aucun paiement</td></tr>'; return; }
+        tbody.innerHTML=payments.map(p=>`<tr><td>${p.parentNom||'-'}</td><td>${p.telephone||'-'}</td><td>${(p.students||[]).map(s=>s.nom).join(', ')||'-'}</td><td>${(p.students||[]).map(s=>s.classe).join(', ')||'-'}</td><td>${(p.montantVerse||0).toLocaleString()} FCFA</td><td>${(p.resteAPayer||0).toLocaleString()} FCFA</td><td>${formatDateFR(p.date)}</td><td class="no-print"><button onclick="supprimerPaiement(${p.id})" style="background:#b91c1c;">🗑️</button></td></tr>`).join('');
+    }
+    function updateBudget(){
+        const totalRecettes=payments.reduce((s,p)=>s+(p.montantVerse||0),0);
+        const taux=(totalRecettes/OBJECTIF_RECETTES)*100;
+        document.getElementById('recettes-realisees')&&(document.getElementById('recettes-realisees').innerText=totalRecettes.toLocaleString()+' FCFA');
+        document.getElementById('taux-realisation')&&(document.getElementById('taux-realisation').innerText=taux.toFixed(1)+'%');
+        const bar=document.getElementById('progress-bar-fill'); if(bar){ bar.style.width=Math.min(taux,100)+'%'; bar.innerText=Math.min(taux,100).toFixed(0)+'%';}
+        const moisMap=new Map();
+        payments.forEach(p=>{ if(p.date){ const [anneeMois]=p.date.split(' ')[0].split('-').slice(0,2); const key=`${anneeMois}`; if(!moisMap.has(key))moisMap.set(key,{nb:0,montant:0,eleves:0}); const d=moisMap.get(key); d.nb++; d.montant+=p.montantVerse; d.eleves+=(p.students||[]).length; } });
+        const tbodyM=document.getElementById('details-mensuels'); if(tbodyM){ if(moisMap.size===0) tbodyM.innerHTML='<tr><td colspan="4">Aucune donnée</td></tr>'; else tbodyM.innerHTML=Array.from(moisMap.entries()).sort().map(([mois,data])=>`<tr><td>${mois.slice(0,4)}-${mois.slice(4)}</td><td>${data.nb}</td><td>${data.montant.toLocaleString()} FCFA</td><td>${data.eleves}</td></tr>`).join('');}
+    }
+    function updateRecentPayments(){ const cont=document.getElementById('derniers-paiements'); if(!cont)return; const recent=[...payments].reverse().slice(0,5); cont.innerHTML=recent.length?recent.map(p=>`<div>📌 ${p.parentNom} - ${(p.montantVerse||0).toLocaleString()} FCFA (${formatDateFR(p.date)})</div>`).join(''):'<em>Aucun récent</em>';}
+    function getParentUnpaid(nom,tel){ return payments.filter(p=>p.parentNom.toLowerCase()===nom.toLowerCase()&&p.telephone===tel).reduce((s,p)=>s+(p.resteAPayer||0),0);}
+    function refreshParentStatus(){ const nom=document.getElementById('nom-parent').value.trim(), tel=document.getElementById('telephone').value.trim(); if(nom&&tel){ const unpaid=getParentUnpaid(nom,tel); currentParentSolde=unpaid; const statSpan=document.getElementById('statut-parent'); const detailsDiv=document.getElementById('details-parent'); if(unpaid>0){ statSpan.innerHTML=`⚠️ Dette antérieure : ${unpaid.toLocaleString()} FCFA`; detailsDiv.innerHTML='<small>Régularisation incluse</small>'; document.getElementById('paiement-dette').style.display='block';} else { statSpan.innerHTML='✅ Aucune dette'; detailsDiv.innerHTML=''; document.getElementById('paiement-dette').style.display='none';} } else { currentParentSolde=0; document.getElementById('statut-parent').innerHTML='Entrez nom/téléphone'; document.getElementById('paiement-dette').style.display='none';} updateTotalDue();}
+    function updateTotalDue(){ const totalEleves=tempStudents.length*COTISATION; const total=totalEleves+currentParentSolde; document.getElementById('montant-total').value=total.toLocaleString()+' FCFA'; const verse=parseFloat(document.getElementById('montant-verse').value)||0; const reste=Math.max(0,total-verse); document.getElementById('reste-payer').value=reste.toLocaleString()+' FCFA';}
+    function ajouterEleve(){ const nom=document.getElementById('nom-eleve').value.trim(), classe=document.getElementById('classe').value.trim(); if(!nom||!classe){alert('Veuillez remplir nom et classe'); return;} tempStudents.push({nom,classe}); afficherListeEleves(); updateTotalDue(); document.getElementById('nom-eleve').value=''; document.getElementById('classe').value='';}
+    function afficherListeEleves(){ const cont=document.getElementById('liste-eleves'); if(tempStudents.length===0) cont.innerHTML='<em>Aucun élève</em>'; else cont.innerHTML=tempStudents.map((s,idx)=>`<div class="student-item"><span><strong>${s.nom}</strong> - ${s.classe}</span><button class="delete-student" onclick="retirerEleve(${idx})">Supprimer</button></div>`).join('');}
+    function retirerEleve(idx){ tempStudents.splice(idx,1); afficherListeEleves(); updateTotalDue();}
+    function enregistrerPaiement(){ const nom=document.getElementById('nom-parent').value.trim(), tel=document.getElementById('telephone').value.trim(), adresse=document.getElementById('adresse').value, obs=document.getElementById('observations').value, montantVerse=parseFloat(document.getElementById('montant-verse').value); if(!nom||!tel){alert('Nom et téléphone requis'); return;} if(tempStudents.length===0&&currentParentSolde===0){alert('Ajoutez au moins un élève ou dette à payer'); return;} if(isNaN(montantVerse)||montantVerse<=0){alert('Montant invalide'); return;} const totalDue=tempStudents.length*COTISATION+currentParentSolde; if(montantVerse>totalDue){alert('Montant supérieur au dû'); return;} const reste=totalDue-montantVerse; const newPay={ id:Date.now(), parentNom:nom, telephone:tel, adresse, students:[...tempStudents], montantVerse, resteAPayer:reste, date:new Date().toISOString().slice(0,19).replace('T',' '), observations:obs }; payments.push(newPay); saveToLocal(); tempStudents=[]; afficherListeEleves(); document.getElementById('montant-verse').value=''; document.getElementById('observations').value=''; document.getElementById('adresse').value=''; updateTotalDue(); refreshParentStatus(); alert('Paiement enregistré !');}
+    function supprimerPaiement(id){ if(confirm('Supprimer définitivement ?')){ payments=payments.filter(p=>p.id!==id); saveToLocal(); refreshParentStatus(); updateTotalDue(); }}
+
+    // ========== EXPORT/IMPORT JSON ==========
+    function exporterPaiements(){ const data=JSON.stringify(payments,null,2); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:'application/json'})); a.download=`cotisations_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`; a.click();}
+    function importerPaiements(){ document.getElementById('file-input').onchange=e=>{ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=ev=>{ try{ const imported=JSON.parse(ev.target.result); if(Array.isArray(imported)){ payments=imported.map(normalizePayment); saveToLocal(); alert('Import réussi'); location.reload();} else alert('Format invalide'); }catch(err){alert('Fichier JSON invalide');}}; reader.readAsText(file);}; document.getElementById('file-input').click();}
+    function sauvegarderBackup(){ const backup={payments, version:'1.0', date:new Date()}; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'})); a.download=`backup_apee_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`; a.click();}
+    function exporterDonnees(){ exporterPaiements(); }
+
+    // ========== BILANS PDF & JSON (NOUVEAU CŒUR) ==========
+    function getBilanData(){ const totalVersements=payments.reduce((s,p)=>s+(p.montantVerse||0),0); const totalRestant=payments.reduce((s,p)=>s+(p.resteAPayer||0),0); const nbParents=payments.length; const nbEleves=payments.reduce((s,p)=>s+(p.students?.length||0),0); return { totalVersements, totalRestant, nbParents, nbEleves, objectif:OBJECTIF_RECETTES, tauxAtteint:(totalVersements/OBJECTIF_RECETTES*100).toFixed(1), payments:payments.map(p=>({ parent:p.parentNom, telephone:p.telephone, montant:p.montantVerse, reste:p.resteAPayer, date:p.date, eleves:p.students })) }; }
+
+    function genererBilanPDF(){ const bilan=getBilanData(); const element=document.createElement('div'); element.innerHTML=`<h1 style="text-align:center;">APEE CES D'EKALI 1 - Bilan financier officiel</h1><p style="text-align:center;">Généré le ${new Date().toLocaleDateString('fr-FR')}</p><hr/><h3>Synthèse des cotisations</h3><p><strong>Total perçu :</strong> ${bilan.totalVersements.toLocaleString()} FCFA</p><p><strong>Reste à recouvrer :</strong> ${bilan.totalRestant.toLocaleString()} FCFA</p><p><strong>Parents ayant cotisé :</strong> ${bilan.nbParents}</p><p><strong>Élèves couverts :</strong> ${bilan.nbEleves}</p><p><strong>Objectif 2025/2026 :</strong> ${bilan.objectif.toLocaleString()} FCFA (taux ${bilan.tauxAtteint}%)</p><h3>Détail des versements</h3><table border="1" style="width:100%; border-collapse:collapse;"><thead><tr><th>Parent</th><th>Montant versé</th><th>Reste</th><th>Date</th><th>Élèves</th></tr></thead><tbody>${bilan.payments.map(p=>`<tr><td>${p.parent}</td><td>${p.montant.toLocaleString()}</td><td>${p.reste.toLocaleString()}</td><td>${formatDateFR(p.date)}</td><td>${(p.eleves||[]).map(e=>e.nom).join(', ')}</td></tr>`).join('')}</tbody></table><p><em>Cotisation unitaire : 12 500 FCFA/élève</em></p>`; html2pdf().set({margin:10,filename:`bilan_APEE_${new Date().toISOString().slice(0,10)}.pdf`,image:{type:'jpeg',quality:0.98},jsPDF:{unit:'mm',format:'a4'}}).from(element).save();}
+    
+    function exporterBilanJSON(){ const bilan=getBilanData(); const dataStr=JSON.stringify(bilan,null,2); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([dataStr],{type:'application/json'})); a.download=`bilan_complet_${new Date().toISOString().slice(0,10)}.json`; a.click();}
+    
+    function genererBilanPeriodePDF(){ const debut=document.getElementById('bilan-date-debut').value; const fin=document.getElementById('bilan-date-fin').value; if(!debut||!fin){alert('Sélectionnez une période'); return;} const filtres=payments.filter(p=>{if(!p.date)return false; const dateP=p.date.split(' ')[0]; return dateP>=debut&&dateP<=fin;}); const totalPeriode=filtres.reduce((s,p)=>s+(p.montantVerse||0),0); const restantPeriode=filtres.reduce((s,p)=>s+(p.resteAPayer||0),0); const element=document.createElement('div'); element.innerHTML=`<h2>Bilan périodique APEE</h2><p>Du ${debut} au ${fin}</p><p><strong>Montant collecté :</strong> ${totalPeriode.toLocaleString()} FCFA</p><p><strong>Reste à payer (période) :</strong> ${restantPeriode.toLocaleString()} FCFA</p><p>Transactions : ${filtres.length}</p><table border="1"><thead><tr><th>Parent</th><th>Montant</th><th>Date</th></tr></thead><tbody>${filtres.map(p=>`<tr><td>${p.parentNom}</td><td>${p.montantVerse.toLocaleString()}</td><td>${formatDateFR(p.date)}</td></tr>`).join('')}</tbody></table>`; html2pdf().set({margin:10,filename:`bilan_periode_${debut}_${fin}.pdf`}).from(element).save();}
+    
+    function exporterBilanPeriodeJSON(){ const debut=document.getElementById('bilan-date-debut').value; const fin=document.getElementById('bilan-date-fin').value; if(!debut||!fin){alert('Période requise'); return;} const filtres=payments.filter(p=>{if(!p.date)return false; const d=p.date.split(' ')[0]; return d>=debut&&d<=fin;}); const data={periode:{debut,fin},totalCollecte:filtres.reduce((s,p)=>s+p.montantVerse,0), paiements:filtres}; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download=`bilan_periode_${debut}_${fin}.json`; a.click();}
+    
+    function genererPDFBudget(){ const budgetDiv=document.getElementById('budget').cloneNode(true); budgetDiv.querySelectorAll('.no-print, button, .recap-actions').forEach(el=>el.remove()); const el=document.createElement('div'); el.innerHTML=`<h1>Rapport d'impact budgétaire - APEE</h1>${budgetDiv.innerHTML}`; html2pdf().set({margin:10,filename:`rapport_budget_${getTodayISO()}.pdf`}).from(el).save();}
+    function genererPDFHistorique(){ const histDiv=document.getElementById('historique').cloneNode(true); histDiv.querySelectorAll('.no-print, button, .recap-actions').forEach(el=>el.remove()); const el=document.createElement('div'); el.innerHTML=`<h1>Historique cotisations</h1>${histDiv.innerHTML}`; html2pdf().set({margin:10}).from(el).save();}
+    function genererPDFRecap(){ const recapDiv=document.getElementById('recap-global'); if(!recapDiv||recapDiv.style.display==='none'){alert('Générez d’abord le récapitulatif (bouton Aperçu texte)'); return;} const clone=recapDiv.cloneNode(true); clone.querySelectorAll('.recap-actions, button').forEach(el=>el.remove()); html2pdf().set({margin:10}).from(clone).save();}
+    function genererRecapGlobal(){ if(payments.length===0){alert('Aucune donnée');return;} let html=`<table border="1"><thead><tr><th>Parent</th><th>Montant versé</th><th>Reste</th><th>Élèves</th></tr></thead><tbody>${payments.map(p=>`<tr><td>${p.parentNom}</td><td>${(p.montantVerse||0).toLocaleString()} FCFA</td><td>${(p.resteAPayer||0).toLocaleString()} FCFA</td><td>${(p.students||[]).map(e=>e.nom).join(', ')}</td></tr>`).join('')}</tbody></table>`; document.getElementById('contenu-recap').innerHTML=html; document.getElementById('date-recap').innerText=new Date().toLocaleString('fr-FR'); }
+    function showRecapBlock(){ document.getElementById('recap-global').style.display='block';}
+    function fermerRecap(){ document.getElementById('recap-global').style.display='none';}
+    function exporterBudgetJSON(){ const budgetData={totalRecettes:payments.reduce((s,p)=>s+p.montantVerse,0),objectif:OBJECTIF_RECETTES,historique:payments.map(p=>({date:p.date,parent:p.parentNom,montant:p.montantVerse,reste:p.resteAPayer}))}; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(budgetData,null,2)],{type:'application/json'})); a.download=`budget_data_${getTodayISO()}.json`; a.click();}
+    function imprimerRapportBudget(){ const w=window.open(''); w.document.write(`<html><head><title>Budget APEE</title><style>body{font-family:sans-serif}</style></head><body>${document.getElementById('budget').innerHTML}</body></html>`); w.print();}
+    function imprimerHistorique(){ const w=window.open(''); w.document.write(`<html><head><title>Historique APEE</title><style>table{border-collapse:collapse;}td,th{border:1px solid gray;padding:6px;}</style></head><body>${document.getElementById('historique').innerHTML}</body></html>`); w.print();}
+    function imprimerRecap(){ const recapDiv=document.getElementById('recap-global'); if(!recapDiv||recapDiv.style.display==='none'){alert('Affichez d’abord le récapitulatif'); return;} const w=window.open(''); w.document.write(`<html><head><title>Récap APEE</title><style>body{font-family:sans-serif;}</style></head><body>${recapDiv.innerHTML}</body></html>`); w.print();}
+    function afficherRecap(){ genererRecapGlobal(); showRecapBlock();}
+    function envoyerSMS(){ alert('Simulation SMS envoyé au parent avec récapitulatif.');}
+    function showTab(id){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.tab-button').forEach(btn=>btn.classList.remove('active')); if(id==='paiement') document.querySelectorAll('.tab-button')[0].classList.add('active'); if(id==='budget') document.querySelectorAll('.tab-button')[1].classList.add('active'); if(id==='bilans') document.querySelectorAll('.tab-button')[2].classList.add('active'); if(id==='historique') document.querySelectorAll('.tab-button')[3].classList.add('active'); if(id==='budget') updateBudget(); if(id==='historique') renderHistorique();}
+    document.getElementById('nom-parent')?.addEventListener('input',refreshParentStatus); document.getElementById('telephone')?.addEventListener('input',refreshParentStatus); document.getElementById('montant-verse')?.addEventListener('input',()=>updateTotalDue());
+    window.ajouterEleve=ajouterEleve; window.retirerEleve=retirerEleve; window.enregistrerPaiement=enregistrerPaiement; window.supprimerPaiement=supprimerPaiement; window.showTab=showTab; window.exporterPaiements=exporterPaiements; window.importerPaiements=importerPaiements; window.sauvegarderBackup=sauvegarderBackup; window.genererBilanPDF=genererBilanPDF; window.exporterBilanJSON=exporterBilanJSON; window.genererBilanPeriodePDF=genererBilanPeriodePDF; window.exporterBilanPeriodeJSON=exporterBilanPeriodeJSON; window.genererPDFBudget=genererPDFBudget; window.genererPDFHistorique=genererPDFHistorique; window.genererPDFRecap=genererPDFRecap; window.genererRecapGlobal=genererRecapGlobal; window.fermerRecap=fermerRecap; window.afficherRecap=afficherRecap; window.envoyerSMS=envoyerSMS; window.imprimerRapportBudget=imprimerRapportBudget; window.imprimerHistorique=imprimerHistorique; window.imprimerRecap=imprimerRecap; window.exporterDonnees=exporterDonnees; window.exporterBudgetJSON=exporterBudgetJSON; window.showRecapBlock=showRecapBlock;
+    loadFromLocal(); refreshParentStatus();
+</script>
+</body>
+</html>
