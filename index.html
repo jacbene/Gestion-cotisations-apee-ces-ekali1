@@ -649,6 +649,94 @@
         return `body { font-family: sans-serif; margin:20px; } .print-container { max-width:100%; } table { width:100%; border-collapse:collapse; } th,td { border:1px solid #aaa; padding:8px; text-align:left; } .budget-stats { display:flex; gap:15px; } .stat-box { border:1px solid #ccc; padding:10px; }`;
     }
 
+   // =============================================
+// GÉNÉRATION DE PDF avec html2pdf
+// =============================================
+
+function genererPDFBudget(download = false) {
+    const budgetContent = document.getElementById('budget').cloneNode(true);
+    budgetContent.querySelectorAll('.no-print, .recap-actions, button').forEach(el => el.remove());
+    
+    const element = document.createElement('div');
+    element.innerHTML = `
+        <h1 style="text-align:center; margin-bottom: 20px;">Rapport d'impact budgétaire</h1>
+        ${budgetContent.innerHTML}
+    `;
+    
+    const opt = {
+        margin: 10,
+        filename: `budget_${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    if (download) {
+        html2pdf().set(opt).from(element).save();
+    } else {
+        html2pdf().set(opt).from(element).outputPdf('dataurlstring', (pdfAsString) => {
+            const pdfWindow = window.open();
+            pdfWindow.document.write(`<iframe src="${pdfAsString}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
+        });
+    }
+}
+
+function genererPDFHistorique(download = false) {
+    const historiqueContent = document.getElementById('historique').cloneNode(true);
+    historiqueContent.querySelectorAll('.no-print, .recap-actions, button, .recap-container').forEach(el => el.remove());
+    
+    const element = document.createElement('div');
+    element.innerHTML = `
+        <h1 style="text-align:center; margin-bottom: 20px;">Historique des cotisations</h1>
+        ${historiqueContent.innerHTML}
+    `;
+    
+    const opt = {
+        margin: 10,
+        filename: `historique_${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    if (download) {
+        html2pdf().set(opt).from(element).save();
+    } else {
+        html2pdf().set(opt).from(element).outputPdf('dataurlstring', (pdfAsString) => {
+            const pdfWindow = window.open();
+            pdfWindow.document.write(`<iframe src="${pdfAsString}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
+        });
+    }
+}
+
+function genererPDFRecap(download = false) {
+    const recapElem = document.getElementById('recap-global');
+    if (!recapElem || recapElem.style.display === 'none') {
+        alert("Veuillez d'abord générer le récapitulatif global.");
+        return;
+    }
+    
+    const recapClone = recapElem.cloneNode(true);
+    recapClone.querySelectorAll('.recap-actions, button').forEach(el => el.remove());
+    
+    const opt = {
+        margin: 10,
+        filename: `recap_${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    if (download) {
+        html2pdf().set(opt).from(recapClone).save();
+    } else {
+        html2pdf().set(opt).from(recapClone).outputPdf('dataurlstring', (pdfAsString) => {
+            const pdfWindow = window.open();
+            pdfWindow.document.write(`<iframe src="${pdfAsString}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
+        });
+    }
+}   
+
     function imprimerHistorique() {
         const historiqueContent = document.getElementById('historique').cloneNode(true);
         historiqueContent.querySelectorAll('.no-print, .recap-actions, button, .recap-container').forEach(el => el.remove());
