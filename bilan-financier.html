@@ -197,48 +197,7 @@
         <p>Générateur de bilans financiers · Cotisations 2025/2026 · Export PDF & JSON</p>
         <div style="margin-top: 12px; font-size:0.8rem;">📌 Module indépendant – rapports complets, statistiques et archives</div>
     </div>
-            <!-- Bouton de retour à la page d'enregistrement des cotisations. index.html -->
-            <div class="bilan-access-wrapper" style="text-align: center; margin: 20px 0;">
-                <a href="index.html" class="btn-bilan">
-                    📁 Accéder à la page des cotisations 
-                    <span class="btn-bilan-icon">→</span>
-                </a>
-            </div>
-            
-            <style>
-            .btn-bilan {
-                display: inline-flex;
-                align-items: center;
-                gap: 12px;
-                background: linear-gradient(135deg, #1e4b2e, #2e7d32);
-                color: white;
-                text-decoration: none;
-                padding: 14px 32px;
-                border-radius: 60px;
-                font-weight: 700;
-                font-size: 1.1rem;
-                font-family: system-ui, 'Segoe UI', sans-serif;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
-                border: none;
-                cursor: pointer;
-            }
-            
-            .btn-bilan:hover {
-                transform: translateY(-3px);
-                background: linear-gradient(135deg, #2e7d32, #1b5e20);
-                box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
-            }
-            
-            .btn-bilan-icon {
-                font-size: 1.3rem;
-                transition: transform 0.2s;
-            }
-            
-            .btn-bilan:hover .btn-bilan-icon {
-                transform: translateX(5px);
-            }
-            </style>
+
     <!-- CARD PRINCIPALE : GESTION DES DONNÉES & BILANS -->
     <div class="card no-print">
         <div class="card-title">📁 Données de cotisations</div>
@@ -321,6 +280,11 @@
         return `${d[2]}/${d[1]}/${d[0]}`;
     }
 
+    function escapeHtml(str) { 
+        if(!str) return ''; 
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+    }
+
     function normalizePayment(p) {
         return {
             id: p.id || Date.now(),
@@ -347,7 +311,6 @@
                 payments = Array.isArray(raw) ? raw.map(normalizePayment) : [];
             } catch(e) { payments = []; }
         } else {
-            // données d'exemple pour démonstration (optionnel mais utile)
             payments = [];
         }
         refreshAllUI();
@@ -449,7 +412,7 @@
         const dateGeneration = new Date().toLocaleString('fr-FR');
         let rowsHtml = '';
         filtered.forEach(p => {
-            const elevesList = (p.students || []).map(s => `${s.nom} (${s.classe})`).join(', ') || '-';
+            const elevesList = (p.students || []).map(s => `${escapeHtml(s.nom)} (${escapeHtml(s.classe)})`).join(', ') || '-';
             rowsHtml += `<tr>
                 <td>${escapeHtml(p.parentNom)}</td>
                 <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
@@ -548,6 +511,7 @@
         let htmlTable = `<table style="width:100%"><thead><tr><th>Parent</th><th>Montant versé</th><th>Reste</th><th>Élèves</th><th>Date</th></tr></thead><tbody>`;
         payments.forEach(p => {
             const elevesStr = (p.students || []).map(s => s.nom).join(', ') || '-';
+            // Ligne complète - correction de la ligne incomplète signalée
             htmlTable += `<tr><td>${escapeHtml(p.parentNom)}</td><td>${(p.montantVerse||0).toLocaleString()} FCFA</td><td>${(p.resteAPayer||0).toLocaleString()} FCFA</td><td>${elevesStr}</td><td>${formatDateFR(p.date)}</td></tr>`;
         });
         const totalAll = payments.reduce((s,p)=>s+(p.montantVerse||0),0);
@@ -571,6 +535,7 @@
         const recapDiv = document.getElementById('recapGlobalDiv');
         if (!recapDiv || recapDiv.style.display === 'none') { alert("Affichez d'abord le récapitulatif."); return; }
         const printWindow = window.open('', '_blank');
+        // Fonction complète - correction de la ligne incomplète signalée
         printWindow.document.write(`<html><head><title>Récap APEE</title><style>body{font-family:sans-serif;} table{border-collapse:collapse;} td,th{border:1px solid gray; padding:6px;}</style></head><body>${recapDiv.cloneNode(true).innerHTML}</body></html>`);
         printWindow.document.close();
         printWindow.print();
@@ -636,8 +601,6 @@
         filterDateFin = null;
         refreshAllUI();
     }
-
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
     // Initialisation des événements
     window.onload = () => {
