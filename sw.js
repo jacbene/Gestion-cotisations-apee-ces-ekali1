@@ -2,8 +2,10 @@ const CACHE_NAME = 'apee-ces-ekali1-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/public/style.css',
-  '/manifest.json',
+  '/formulaire-cotisations.html',
+  '/bilan-financier.html',
+  '/manifest.json'
+];
   '/icons/android-icon-192x192.png',
   '/icons/apple-icon-180x180.png',
   '/icons/apple-icon-60x60.png',
@@ -88,3 +90,4 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
