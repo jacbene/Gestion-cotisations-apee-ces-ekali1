@@ -803,8 +803,8 @@ function genererPDFRecap(download = false) {
         const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
         html += `<tr style="background:#e9ecef; font-weight:bold;">
             <td colspan="4">TOTAUX ${totalGlobal.toLocaleString()} FCFA</td>
-            <td></td>
             <td>${totalReste.toLocaleString()} FCFA</td>
+            <td></td>
         </tr></tbody></table>`;
         document.getElementById('contenu-recap').innerHTML = html;
         document.getElementById('date-recap').innerText = new Date().toLocaleDateString('fr-FR', {
