@@ -60,7 +60,49 @@
                 <button class="tab-button active" onclick="showTab('historique')">Historique des Paiements</button>
                 <button class="tab-button" onclick="showTab('bilans')">📄 Bilans PDF / JSON</button>
             </div>
-
+            
+            <!-- Bouton d'accès à la page Bilan - À placer où vous souhaitez dans votre index.html -->
+            <div class="bilan-access-wrapper" style="text-align: center; margin: 20px 0;">
+                <a href="bilan-financier.html" class="btn-bilan">
+                    📊 Accéder au Générateur de Bilans Financiers
+                    <span class="btn-bilan-icon">→</span>
+                </a>
+            </div>
+            
+            <style>
+            .btn-bilan {
+                display: inline-flex;
+                align-items: center;
+                gap: 12px;
+                background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+                color: white;
+                text-decoration: none;
+                padding: 14px 32px;
+                border-radius: 60px;
+                font-weight: 700;
+                font-size: 1.1rem;
+                font-family: system-ui, 'Segoe UI', sans-serif;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+                border: none;
+                cursor: pointer;
+            }
+            
+            .btn-bilan:hover {
+                transform: translateY(-3px);
+                background: linear-gradient(135deg, #2e7d32, #1b5e20);
+                box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
+            }
+            
+            .btn-bilan-icon {
+                font-size: 1.3rem;
+                transition: transform 0.2s;
+            }
+            
+            .btn-bilan:hover .btn-bilan-icon {
+                transform: translateX(5px);
+            }
+            </style>
             <!-- Onglet Paiement des Cotisations -->
             <div id="paiement" class="tab-content active">
                 <!-- Section pour la gestion des fichiers -->
