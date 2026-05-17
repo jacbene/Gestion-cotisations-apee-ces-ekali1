@@ -638,7 +638,7 @@
             return;
         }
         container.innerHTML = recent.map(p =>
-            `<div class="paiement-item">📌 ${p.parentNom || '?'} - ${(p.montantVerse || 0).toLocaleString()} FCFA le ${formatDateFR(p.date)}</div>`
+            `<div class="paiement-item">📌 ${<b>p.parentNom</b> || '?'} - ${(p.montantVerse || 0).toLocaleString()} FCFA le ${formatDateFR(p.date)}</div>`
         ).join('');
     }
 
@@ -687,7 +687,7 @@ function genererPDFHistorique(download = false) {
     
     const element = document.createElement('div');
     element.innerHTML = `
-        <h1 style="text-align:center; margin-bottom: 20px;">Historique des cotisations</h1>
+        <h1 style="text-align:center; margin-bottom: 20px;">Historique des cotisations - APEE CES d'Ekali1</h1>
         ${historiqueContent.innerHTML}
     `;
     
@@ -742,7 +742,7 @@ function genererPDFRecap(download = false) {
         historiqueContent.querySelectorAll('.no-print, .recap-actions, button, .recap-container').forEach(el => el.remove());
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <html><head><title>Historique des paiements - APEE EKALI 1</title>
+            <html><head><title>Historique des paiements - APEE CES d'Ekali1</title>
             <style>${getPrintStyles()}</style></head>
             <body><div class="print-container"><h1 style="text-align:center;">Historique des cotisations</h1>${historiqueContent.innerHTML}</div></body></html>
         `);
@@ -755,7 +755,7 @@ function genererPDFRecap(download = false) {
         budgetContent.querySelectorAll('.no-print, .recap-actions, button').forEach(el => el.remove());
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <html><head><title>Impact Budget - APEE EKALI 1</title>
+            <html><head><title>Impact Budget - APEE CES d'Ekali1</title>
             <style>${getPrintStyles()}</style></head>
             <body><div class="print-container"><h1 style="text-align:center;">Rapport d'impact budgétaire</h1>${budgetContent.innerHTML}</div></body></html>
         `);
@@ -773,7 +773,7 @@ function genererPDFRecap(download = false) {
         recapClone.querySelectorAll('.recap-actions, button').forEach(el => el.remove());
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <html><head><title>Récapitulatif Global - APEE EKALI 1</title>
+            <html><head><title>Récapitulatif Global - APEE CES d'Ekali1</title>
             <style>${getPrintStyles()}</style></head>
             <body><div class="print-container">${recapClone.innerHTML}</div></body></html>
         `);
@@ -802,8 +802,8 @@ function genererPDFRecap(download = false) {
         const totalGlobal = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
         const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
         html += `<tr style="background:#e9ecef; font-weight:bold;">
-            <td colspan="4">TOTAUX</td>
-            <td>${totalGlobal.toLocaleString()} FCFA</td>
+            <td colspan="4">TOTAUX ${totalGlobal.toLocaleString()} FCFA</td>
+            <td></td>
             <td>${totalReste.toLocaleString()} FCFA</td>
         </tr></tbody></table>`;
         document.getElementById('contenu-recap').innerHTML = html;
