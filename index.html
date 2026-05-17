@@ -680,7 +680,7 @@
             return;
         }
         container.innerHTML = recent.map(p =>
-            `<div class="paiement-item">📌 ${<b>p.parentNom</b> || '?'} - ${(p.montantVerse || 0).toLocaleString()} FCFA le ${formatDateFR(p.date)}</div>`
+            `<div class="paiement-item">📌 ${escapeHtml(p.parentNom) || '?'} - ${(p.montantVerse || 0).toLocaleString()} FCFA le ${formatDateFR(p.date)}</div>`
         ).join('');
     }
 
@@ -844,7 +844,7 @@ function genererPDFRecap(download = false) {
         const totalGlobal = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
         const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
         html += `<tr style="background:#e9ecef; font-weight:bold;">
-            <td colspan="4">TOTAUX ${totalGlobal.toLocaleString()} FCFA</td>
+            <td>TOTAUX</td><td colspan="3">${totalGlobal.toLocaleString()} FCFA</td>
             <td>${totalReste.toLocaleString()} FCFA</td>
             <td></td>
         </tr></tbody></table>`;
