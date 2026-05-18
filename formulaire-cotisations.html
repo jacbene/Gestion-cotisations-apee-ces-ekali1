@@ -143,13 +143,6 @@
 <body>
 <div class="container">
     <a href="index.html" class="return-link">← Retour à l'accueil</a>
-
-    <!-- Bandeau d'installation -->
-    <div id="installBanner" class="install-prompt hidden">
-        <span>📱 Installer l'application pour un accès rapide hors ligne</span>
-        <button id="installBtn" class="btn-secondary" style="padding: 8px 20px;">Installer</button>
-    </div>
-
     <div class="card">
         <div class="card-title" id="formTitle">📝 Nouvelle cotisation</div>
         <form id="cotisationForm">
@@ -186,7 +179,7 @@
             <hr>
             <div class="form-group">
                 <label>Montant versé (FCFA) *</label>
-                <input type="number" id="montantVerse" step="100" value="0" required>
+                <input type="number" id="montantVerse" step="1" value="0" required>
                 <small id="cotisationInfo">Cotisation par élève : </small>
             </div>
             <div class="form-group">
