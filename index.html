@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="APEE CES EKALI1">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/web-app-manifest-512x512.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="icons/web-app-manifest-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="icon" type="image/png"  href="icons/favicon.ico">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+        
+    <link rel="manifest" href="manifest.json">
+    <title>APEE CES EKALI 1 - Accueil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #eef2f5;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 2rem;
+            border-radius: 32px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        /* Grille des cartes */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .nav-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .nav-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+            border-color: #2e7d32;
+        }
+        .nav-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .nav-card h3 {
+            font-size: 1.5rem;
+            color: #1e4b2e;
+            margin-bottom: 0.5rem;
+        }
+        .nav-card p {
+            color: #4a627a;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .badge-new {
+            background: #ff9800;
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #4a627a;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="header">
+        <h1>📋 APEE CES D'EKALI 1 - MFOU</h1>
+        <p>Plateforme de gestion des cotisations et bilans financiers</p>
+    </div>
+
+    <div class="nav-grid">
+        <!-- Carte 1 : Formulaire d'enregistrement -->
+        <a href="formulaire-cotisations.html" class="nav-card">
+            <div class="nav-icon">📝</div>
+            <h3>Enregistrer une cotisation</h3>
+            <p>Saisir les paiements des parents, ajouter des élèves et gérer les reçus.</p>
+            <span class="badge-new">Formulaire dynamique</span>
+        </a>
+
+        <!-- Carte 2 : Générateur de bilans -->
+        <a href="bilan-financier.html" class="nav-card">
+            <div class="nav-icon">📊</div>
+            <h3>Générateur de bilans</h3>
+            <p>Consulter les statistiques, exporter en PDF/JSON et suivre l’objectif financier.</p>
+        </a>
+        
+         <!-- Carte 3 : Formulares de getn finaniere -->
+      <a href="gestion-financiere.html" class="nav-card">
+          <div class="nav-icon">⚖️</div>
+          <h3>Gestion financière</h3>
+          <p>Bons de commande, ordres de paiement, remboursements et suivi budgétaire.</p>
+      </a>      
+
+        <!-- Carte 4 : Archives / Export (page future) -->
+        <a href="archives.html" class="nav-card">
+            <div class="nav-icon">📁</div>
+            <h3>Archives & historique</h3>
+            <p>Rechercher des paiements anciens, exporter l’historique complet.</p>
+        </a>
+
+        <!-- Carte 5 : Paramètres (optionnel) -->
+        <a href="parametres.html" class="nav-card">
+            <div class="nav-icon">⚙️</div>
+            <h3>Paramètres</h3>
+            <p>Modifier le montant de la cotisation, l’objectif, sauvegardes.</p>
+        </a>
+    </div>
+
+    <div class="footer">
+        📌 Toutes les données sont stockées localement dans votre navigateur.<br>
+        Utilisez l’export JSON pour sauvegarder vos informations.
+    </div>
+</div>
+     <!-- ... fin du contenu de la page ... -->
+
+    <script>
+    
+        function updateAssociationName() {
+            const stored = localStorage.getItem('apee_app_settings');
+            if (stored) {
+                try {
+                    const settings = JSON.parse(stored);
+                    if (settings.nomAssociation) {
+                        document.querySelector('.header h1').innerHTML = `📋 ${settings.nomAssociation}`;
+                    }
+                } catch(e) {}
+            }
+        }
+         updateAssociationName();   
+    
+        // Enregistrement du Service Worker pour la PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                    console.log('Service Worker enregistré avec succès :', reg);
+                }).catch(function(err) {
+                    console.error('Erreur lors de l\'enregistrement du Service Worker :', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>  
+
