@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>APEE CES EKALI 1 - Paramètres</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        body {
+            background: #eef2f5;
+            padding: 24px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .return-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #2e7d32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-left: 5px solid #2e7d32;
+            padding-left: 16px;
+            margin-bottom: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            color: #2c5a2e;
+        }
+        input {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            background: white;
+        }
+        input:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 2px rgba(46,125,50,0.1);
+        }
+        button {
+            background: #2e7d32;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 48px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover {
+            background: #1b5e20;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #2c3e66;
+        }
+        .btn-outline {
+            background: #f4f7fb;
+            color: #1e4620;
+            border: 1px solid #cbdde6;
+            box-shadow: none;
+        }
+        .btn-outline:hover {
+            background: #e6f0e6;
+        }
+        .btn-danger {
+            background: #dc2626;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        .flex-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .alert-success {
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            color: #1e4620;
+        }
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        .info-text {
+            font-size: 0.8rem;
+            color: #4a627a;
+            margin-top: 6px;
+        }
+        .warning-box {
+            background: #fee2e2;
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+            body { padding: 16px; }
+            .card { padding: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="index.html" class="return-link">← Retour à l'accueil</a>
+
+    <div class="card">
+        <div class="card-title">⚙️ Paramètres généraux</div>
+        <form id="settingsForm">
+            <div class="form-group">
+                <label>💰 Montant de la cotisation par élève (FCFA)</label>
+                <input type="number" id="cotisationParEleve" step="500" min="0" required>
+                <div class="info-text">Utilisé pour calculer le montant dû dans le formulaire.</div>
+            </div>
+            <div class="form-group">
+                <label>🎯 Objectif financier total (FCFA)</label>
+                <input type="number" id="objectifTotal" step="10000" min="0" required>
+                <div class="info-text">Cet objectif sert de référence pour le taux d'atteinte dans le bilan.</div>
+            </div>
+            <div class="form-group">
+                <label>🏷️ Nom de l'association (affiché dans les bilans et l'accueil)</label>
+                <input type="text" id="nomAssociation" placeholder="APEE CES EKALI 1 - MFOU">
+            </div>
+            <div class="form-group">
+                <label>📅 Année scolaire</label>
+                <input type="text" id="anneeScolaire" placeholder="2025/2026">
+            </div>
+            <div class="flex-buttons">
+                <button type="submit">💾 Enregistrer les paramètres</button>
+                <button type="button" id="resetDefaultBtn" class="btn-outline">↺ Rétablir les valeurs par défaut</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-title">📁 Sauvegarde & restauration</div>
+        <div class="flex-buttons">
+            <button id="exportSettingsBtn" class="btn-secondary">📎 Exporter les paramètres (JSON)</button>
+            <button id="importSettingsBtn" class="btn-secondary">📂 Importer des paramètres (JSON)</button>
+        </div>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        <hr>
+        <button id="resetAllDataBtn" class="btn-danger">⚠️ Réinitialiser toutes les données (cotisations + paramètres)</button>
+        <div class="warning-box">
+            <strong>⚠️ Attention :</strong> La réinitialisation supprime définitivement toutes les cotisations enregistrées et remet les paramètres aux valeurs par défaut. Cette action est irréversible.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">ℹ️ À propos</div>
+        <p>Les paramètres sont stockés localement dans votre navigateur. Ils sont utilisés par :</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>Le formulaire d'enregistrement des cotisations (calcul du montant dû)</li>
+            <li>Le générateur de bilans financiers (objectif et taux d'atteinte)</li>
+            <li>La page d'accueil (nom de l'association et année scolaire)</li>
+            <li>Les exports PDF et JSON</li>
+        </ul>
+        <p style="margin-top: 12px;">Après modification des paramètres, pensez à rafraîchir les autres pages si elles sont ouvertes.</p>
+    </div>
+</div>
+
+<script>
+    // Clés de stockage
+    const STORAGE_SETTINGS_KEY = 'apee_app_settings';
+    const STORAGE_PAYMENTS_KEY = 'apee_payments_bilan';
+
+    // Valeurs par défaut
+    const DEFAULT_SETTINGS = {
+        cotisationParEleve: 12500,
+        objectifTotal: 1250000,
+        nomAssociation: "APEE CES D'EKALI 1 - MFOU",
+        anneeScolaire: "2025/2026"
+    };
+
+    // Charger les paramètres depuis localStorage
+    function loadSettings() {
+        const stored = localStorage.getItem(STORAGE_SETTINGS_KEY);
+        if (stored) {
+            try {
+                const settings = JSON.parse(stored);
+                return { ...DEFAULT_SETTINGS, ...settings };
+            } catch(e) {
+                console.error("Erreur lecture paramètres", e);
+                return { ...DEFAULT_SETTINGS };
+            }
+        }
+        return { ...DEFAULT_SETTINGS };
+    }
+
+    // Sauvegarder les paramètres
+    function saveSettings(settings) {
+        localStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    // Appliquer au formulaire
+    function displaySettings(settings) {
+        document.getElementById('cotisationParEleve').value = settings.cotisationParEleve;
+        document.getElementById('objectifTotal').value = settings.objectifTotal;
+        document.getElementById('nomAssociation').value = settings.nomAssociation;
+        document.getElementById('anneeScolaire').value = settings.anneeScolaire;
+    }
+
+    // Récupérer depuis le formulaire
+    function getSettingsFromForm() {
+        return {
+            cotisationParEleve: parseInt(document.getElementById('cotisationParEleve').value, 10) || 0,
+            objectifTotal: parseInt(document.getElementById('objectifTotal').value, 10) || 0,
+            nomAssociation: document.getElementById('nomAssociation').value.trim() || DEFAULT_SETTINGS.nomAssociation,
+            anneeScolaire: document.getElementById('anneeScolaire').value.trim() || DEFAULT_SETTINGS.anneeScolaire
+        };
+    }
+
+    // Afficher une notification temporaire
+    function showMessage(message, isError = false) {
+        const existingMsg = document.querySelector('.alert-success, .alert-warning');
+        if (existingMsg) existingMsg.remove();
+        
+        const div = document.createElement('div');
+        div.className = isError ? 'alert-warning' : 'alert-success';
+        div.innerText = message;
+        div.style.marginBottom = '20px';
+        const firstCard = document.querySelector('.card');
+        firstCard.parentNode.insertBefore(div, firstCard);
+        
+        setTimeout(() => div.remove(), 4000);
+    }
+
+    // Événements
+    document.getElementById('settingsForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newSettings = getSettingsFromForm();
+        if (newSettings.cotisationParEleve <= 0) {
+            showMessage("La cotisation par élève doit être supérieure à 0.", true);
+            return;
+        }
+        if (newSettings.objectifTotal <= 0) {
+            showMessage("L'objectif total doit être supérieur à 0.", true);
+            return;
+        }
+        saveSettings(newSettings);
+        showMessage("✅ Paramètres enregistrés avec succès !");
+    });
+
+    document.getElementById('resetDefaultBtn').addEventListener('click', () => {
+        if (confirm("Rétablir les paramètres par défaut ? Les paramètres actuels seront perdus.")) {
+            saveSettings(DEFAULT_SETTINGS);
+            displaySettings(DEFAULT_SETTINGS);
+            showMessage("Paramètres rétablis aux valeurs par défaut.");
+        }
+    });
+
+    // Export
+    document.getElementById('exportSettingsBtn').addEventListener('click', () => {
+        const settings = loadSettings();
+        const dataStr = JSON.stringify(settings, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `apee_settings_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showMessage("Paramètres exportés.");
+    });
+
+    // Import
+    const fileInput = document.getElementById('importFileInput');
+    document.getElementById('importSettingsBtn').addEventListener('click', () => {
+        fileInput.click();
+    });
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const imported = JSON.parse(ev.target.result);
+                if (typeof imported.cotisationParEleve === 'number' && typeof imported.objectifTotal === 'number') {
+                    const newSettings = { ...DEFAULT_SETTINGS, ...imported };
+                    saveSettings(newSettings);
+                    displaySettings(newSettings);
+                    showMessage("Paramètres importés avec succès !");
+                } else {
+                    showMessage("Fichier invalide : les champs 'cotisationParEleve' et 'objectifTotal' sont requis.", true);
+                }
+            } catch(err) {
+                showMessage("Erreur lors de la lecture du fichier JSON.", true);
+            }
+        };
+        reader.readAsText(file);
+        fileInput.value = '';
+    });
+
+    // Réinitialisation complète
+    document.getElementById('resetAllDataBtn').addEventListener('click', () => {
+        const confirmMsg = "⚠️ ATTENTION : Cette action supprimera TOUTES les cotisations enregistrées et remettra les paramètres par défaut. Êtes-vous absolument sûr ?";
+        if (confirm(confirmMsg)) {
+            localStorage.removeItem(STORAGE_PAYMENTS_KEY);
+            saveSettings(DEFAULT_SETTINGS);
+            displaySettings(DEFAULT_SETTINGS);
+            showMessage("Toutes les données ont été réinitialisées. La page va se recharger pour appliquer les changements.");
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    });
+
+    // Chargement initial
+    const initialSettings = loadSettings();
+    displaySettings(initialSettings);
+
+    // Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.error("SW error:", err));
+        });
+    }
+</script>
+</body>
+</html>
