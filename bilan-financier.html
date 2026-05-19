@@ -243,11 +243,12 @@
         <h3 style="margin-bottom: 12px;">📆 Répartition mensuelle des recettes</h3>
         <div id="tableMensuelleContainer"></div>
     </div>
+    
     <!-- Ajout : Suivi des parents débiteurs -->
     <div class="card" style="margin-top: 20px;">
         <div class="card-title">👨‍👩‍👧‍👦 Suivi des soldes par parent</div>
         <div id="suiviParentsContainer"></div>
-    </div>
+    </div>    
 
     <div id="recapGlobalDiv" class="recap-container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -406,7 +407,7 @@
             }
         });
         const tableContainer = document.getElementById('tableMensuelleContainer');
-        if (tableContainer) {
+      if (tableContainer) {
             if (moisMap.size === 0) {
                 tableContainer.innerHTML = '<p class="badge">Aucune donnée sur cette période</p>';
             } else {
@@ -419,11 +420,54 @@
                 html += `</tbody></table>`;
                 tableContainer.innerHTML = html;
             }
-        }
+        } 
     }
+    
+    // Fonction de suivi des soldes par parent (corrigée)
+    function afficherSuiviParents() {
+        const paiements = getFilteredPayments();
+        const soldes = new Map();
+        paiements.forEach(p => {
+            const key = `${p.parentNom}|${p.telephone}`;
+            const totalDuTransaction = (p.students?.length || 0) * appParams.cotisationParEleve;
+            if (!soldes.has(key)) {
+                soldes.set(key, { nom: p.parentNom, telephone: p.telephone, totalDu: 0, totalVerse: 0 });
+            }
+            const s = soldes.get(key);
+            s.totalDu += totalDuTransaction;
+            s.totalVerse += p.montantVerse || 0;
+        });
+        let html = `<table style="margin-top:0"><thead><tr><th>Parent</th><th>Téléphone</th><th>Total dû (FCFA)</th><th>Total versé (FCFA)</th><th>Solde restant (FCFA)</th></tr></thead><tbody>`;
+        for (let [key, s] of soldes.entries()) {
+            const solde = s.totalDu - s.totalVerse;
+            if (solde > 0) {
+                html += `<tr>
+                            <td>${escapeHtml(s.nom)}</td>
+                            <td>${escapeHtml(s.telephone)}</td>
+                            <td>${s.totalDu.toLocaleString()}</td>
+                            <td>${s.totalVerse.toLocaleString()}</td>
+                            <td style="color:#dc2626; font-weight:bold;">${solde.toLocaleString()}</td>
+                         </tr>`;
+            } else {
+                html += `<tr>
+                            <td>${escapeHtml(s.nom)}</td>
+                            <td>${escapeHtml(s.telephone)}</td>
+                            <td>${s.totalDu.toLocaleString()}</td>
+                            <td>${s.totalVerse.toLocaleString()}</td>
+                            <td style="color:#2e7d32;">Soldé</td>
+                         </tr>`;
+            }
+        }
+        html += `</tbody></table>`;
+        const container = document.getElementById('suiviParentsContainer');
+        if (container) {
+            container.innerHTML = (soldes.size === 0) ? '<p>Aucun parent enregistré dans la période.</p>' : html;
+        }
+    }    
 
     function refreshAllUI() {
         updateStatsUI();
+        afficherSuiviParents();
     }
 
     // --------------------------------------------------------------
@@ -436,7 +480,13 @@
         let rowsHtml = '';
         filtered.forEach(p => {
             const elevesList = (p.students || []).map(s => `${escapeHtml(s.nom)} (${escapeHtml(s.classe)})`).join(', ') || '-';
-            rowsHtml += `<tr><td>${escapeHtml(p.parentNom)}</td><td>${(p.montantVerse || 0).toLocaleString()} FCFA</td><td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td><td>${elevesList}</td><td>${formatDateFR(p.date)}</td></tr>`;
+            rowsHtml += `<tr>
+                    <td>${escapeHtml(p.parentNom)}</td>
+                    <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
+                    <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
+                    <td>${elevesList}</td>
+                    <td>${formatDateFR(p.date)}</td>
+                 </tr>`;
         });
         const element = document.createElement('div');
         element.innerHTML = `
