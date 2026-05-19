@@ -2,9 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Gestion des Cotisations - APEE CES D'EKALI 1</title>
-    <link rel="stylesheet" href="public/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#4CAF50">
@@ -32,10 +30,9 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Manifest -->
+        
     <link rel="manifest" href="manifest.json">
-    
+    <title>APEE CES EKALI 1 - Accueil</title>
     <!-- Bannière PWA CSS -->
     <style>
         /* Bannière d'installation PWA */
@@ -181,6 +178,104 @@
                 justify-content: center;
             }
         }
+    </style>    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #eef2f5;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 2rem;
+            border-radius: 32px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        /* Grille des cartes */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .nav-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .nav-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+            border-color: #2e7d32;
+        }
+        .nav-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .nav-card h3 {
+            font-size: 1.5rem;
+            color: #1e4b2e;
+            margin-bottom: 0.5rem;
+        }
+        .nav-card p {
+            color: #4a627a;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .badge-new {
+            background: #ff9800;
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #4a627a;
+            margin-top: 40px;
+        }
     </style>
 </head>
 <body>
@@ -200,334 +295,58 @@
                 </button>
             </div>
         </div>
+    </div>  
+<div class="dashboard-container">
+    <div class="header">
+        <h1>📋 APEE CES D'EKALI 1 - MFOU</h1>
+        <p>Plateforme de gestion des cotisations et bilans financiers</p>
     </div>
 
-    <div class="container">
-        <header class="header no-print">
-            <h1 class="header__title">APEE DU CES D'EKALI 1</h1>
-            <h2 class="header__subtitle">GESTION DES COTISATIONS DES PARENTS</h2>
-            <div class="header__date-range">
-                <div class="date-range__item">Semaine du: <input type="date" id="date-debut"></div>
-                <div class="date-range__item">au: <input type="date" id="date-fin"></div>
-            </div>
-        </header>
+    <div class="nav-grid">
+        <!-- Carte 1 : Formulaire d'enregistrement -->
+        <a href="formulaire-cotisations.html" class="nav-card">
+            <div class="nav-icon">📝</div>
+            <h3>Enregistrer une cotisation</h3>
+            <p>Saisir les paiements des parents, ajouter des élèves et gérer les reçus.</p>
+            <span class="badge-new">Formulaire dynamique</span>
+        </a>
 
-        <main class="main">
-            <div class="tabs no-print">
-                <button class="tab-button active" onclick="showTab('paiement')">Paiement des Cotisations</button>
-                <button class="tab-button active" onclick="showTab('budget')">Impact sur le Budget</button>
-                <button class="tab-button active" onclick="showTab('historique')">Historique des Paiements</button>
-            </div>
-            
-            <!-- Bouton d'accès à la page Bilan -->
-            <div class="bilan-access-wrapper" style="text-align: center; margin: 20px 0;">
-                <a href="bilan-financier.html" class="btn-bilan">
-                    📊 Accéder au Générateur de Bilans Financiers
-                    <span class="btn-bilan-icon">→</span>
-                </a>
-            </div>
-            
-            <style>
-            .btn-bilan {
-                display: inline-flex;
-                align-items: center;
-                gap: 12px;
-                background: linear-gradient(135deg, #1e4b2e, #2e7d32);
-                color: white;
-                text-decoration: none;
-                padding: 14px 32px;
-                border-radius: 60px;
-                font-weight: 700;
-                font-size: 1.1rem;
-                font-family: system-ui, 'Segoe UI', sans-serif;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
-                border: none;
-                cursor: pointer;
-            }
-            
-            .btn-bilan:hover {
-                transform: translateY(-3px);
-                background: linear-gradient(135deg, #2e7d32, #1b5e20);
-                box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4);
-            }
-            
-            .btn-bilan-icon {
-                font-size: 1.3rem;
-                transition: transform 0.2s;
-            }
-            
-            .btn-bilan:hover .btn-bilan-icon {
-                transform: translateX(5px);
-            }
-            </style>
-            <!-- Onglet Paiement des Cotisations -->
-            <div id="paiement" class="tab-content active">
-                <!-- Section pour la gestion des fichiers -->
-                <div class="card file-management no-print">
-                    <h2 class="card__title">Gestion des Fichiers de Données</h2>
-                    <p>Exportez vos données pour les sauvegarder ou les importer sur un autre appareil.</p>
+        <!-- Carte 2 : Générateur de bilans -->
+        <a href="bilan-financier.html" class="nav-card">
+            <div class="nav-icon">📊</div>
+            <h3>Générateur de bilans</h3>
+            <p>Consulter les statistiques, exporter en PDF/JSON et suivre l’objectif financier.</p>
+        </a>
+        
+         <!-- Carte 3 : Formulares de getn finaniere -->
+      <a href="gestion-financiere.html" class="nav-card">
+          <div class="nav-icon">⚖️</div>
+          <h3>Gestion financière</h3>
+          <p>Bons de commande, ordres de paiement, remboursements et suivi budgétaire.</p>
+      </a>      
 
-                    <div class="file-buttons">
-                        <button class="file-button" onclick="exporterPaiements()">📥 Exporter les paiements</button>
-                        <button class="file-button import" onclick="importerPaiements()">📤 Importer des paiements</button>
-                        <button class="file-button backup" onclick="sauvegarderBackup()">💾 Sauvegarder Backup Complet</button>
+        <!-- Carte 4 : Archives / Export (page future) -->
+        <a href="archives.html" class="nav-card">
+            <div class="nav-icon">📁</div>
+            <h3>Archives & historique</h3>
+            <p>Rechercher des paiements anciens, exporter l’historique complet.</p>
+        </a>
 
-                        <input type="file" id="file-input" accept=".json" class="file-input">
-                    </div>
-
-                    <div class="file-info">
-                        <p><strong>Instructions :</strong></p>
-                        <ul>
-                            <li>Exportez les paiements pour sauvegarder les données actuelles</li>
-                            <li>Importez des paiements pour restaurer une sauvegarde</li>
-                            <li>Les fichiers sont sauvegardés au format JSON dans votre dossier de téléchargements</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card no-print">
-                    <h2 class="card__title">Informations du Parent/Tuteur</h2>
-
-                    <div id="info-parent" class="parent-info">
-                        <strong>Statut: </strong><span id="statut-parent"></span>
-                        <div id="details-parent"></div>
-                    </div>
-
-                    <div id="paiement-dette" class="paiement-dette">
-                        <strong>⚠ Paiement de dette seulement</strong>
-                        <p>Le parent existant n'a pas ajouté de nouvel élève. Le montant à payer correspond au solde précédent.</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nom-parent">Nom complet du parent/tuteur *</label>
-                        <input type="text" id="nom-parent" required placeholder="Nom et prénom">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="telephone">Numéro de téléphone *</label>
-                        <input type="tel" id="telephone" required placeholder="Pour l'envoi de SMS">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="adresse">Adresse complète</label>
-                        <textarea id="adresse" rows="2" placeholder="Adresse postale"></textarea>
-                    </div>
-
-                    <div class="montant-info">
-                        Cotisation par élève: 12 500 FCFA
-                    </div>
-                </div>
-
-                <div class="card no-print">
-                    <h2 class="card__title">Ajouter un élève</h2>
-                    <div class="form-group">
-                        <label for="nom-eleve">Nom de l'élève *</label>
-                        <input type="text" id="nom-eleve" placeholder="Nom et prénom">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="classe">Classe de l'élève *</label>
-                        <input type="text" id="classe" placeholder="Classe">
-                    </div>
-
-                    <button onclick="ajouterEleve()">+ Ajouter cet élève</button>
-
-                    <div class="student-list">
-                        <h3>Élèves ajoutés</h3>
-                        <div id="liste-eleves">
-                            <!-- Les élèves seront ajoutés ici dynamiquement -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card no-print">
-                    <h2 class="card__title">Paiement</h2>
-                    <div class="form-group">
-                        <label for="montant-total">Montant total à payer</label>
-                        <input type="text" id="montant-total" readonly value="0 FCFA">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="montant-verse">Montant versé (FCFA) *</label>
-                        <input type="number" id="montant-verse" min="0">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reste-payer">Reste à payer (FCFA)</label>
-                        <input type="text" id="reste-payer" readonly value="0 FCFA">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="observations">Observations</label>
-                        <textarea id="observations" rows="2" placeholder="Notes éventuelles"></textarea>
-                    </div>
-
-                    <div class="actions">
-                        <button onclick="enregistrerPaiement()">Enregistrer le paiement</button>
-                        <button class="sms" onclick="envoyerSMS()">📱 Envoyer SMS récapitulatif</button>
-                        <button class="secondary" onclick="afficherRecap()">Afficher le récapitulatif</button>
-                        <button class="secondary" onclick="genererRecapGlobal()">📊 Récap Global</button>
-                    </div>
-                </div>
-
-                <!-- Section pour afficher les derniers paiements -->
-                <div class="card no-print">
-                    <h2 class="card__title">Derniers paiements enregistrés</h2>
-                    <div id="derniers-paiements" class="derniers-paiements">
-                        <!-- Les derniers paiements seront affichés ici -->
-                    </div>
-                    <div class="voir-plus">
-                        <button class="secondary" onclick="showTab('historique')">Voir tous les paiements</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Onglet Impact sur le Budget -->
-            <div id="budget" class="tab-content">
-                <div class="recap-header">
-                    <h2>Impact des Cotisations sur le Budget Prévisionnel</h2>
-                    <p>État des recettes provenant des cotisations des parents</p>
-                </div>
-
-                <div class="budget-stats">
-                    <div class="stat-box">
-                        <h3>Objectif de Recettes</h3>
-                        <div class="stat-value" id="objectif-recettes">1 250 000 FCFA</div>
-                        <p>Cotisations attendues (100 élèves × 12 500 FCFA)</p>
-                    </div>
-
-                    <div class="stat-box">
-                        <h3>Recettes Réalisées</h3>
-                        <div class="stat-value" id="recettes-realisees">0 FCFA</div>
-                        <p>Total des cotisations perçues</p>
-                    </div>
-
-                    <div class="stat-box">
-                        <h3>Taux de Réalisation</h3>
-                        <div class="stat-value" id="taux-realisation">0%</div>
-                        <p>Pourcentage de l'objectif atteint</p>
-                    </div>
-                </div>
-
-                <div class="progress-container">
-                    <h3>Progression vers l'objectif</h3>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-bar-fill"></div>
-                    </div>
-                    <div class="progress-text" id="progress-text">0%</div>
-                </div>
-
-                <div class="budget-impact">
-                    <h3>Détail des cotisations par mois</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Mois</th>
-                                <th>Nombre de paiements</th>
-                                <th>Montant perçu</th>
-                                <th>Élèves concernés</th>
-                            </tr>
-                        </thead>
-                        <tbody id="details-mensuels">
-                            <!-- Les détails mensuels seront ajoutés ici dynamiquement -->
-                        </tbody>
-                    </table>
-                    
-                </div>
-                <div class="recap-actions">
-                    <button onclick="genererPDFBudget(false)">📄 Prévisualiser PDF Budget</button>
-                    <button onclick="genererPDFBudget(true)">⬇️ Télécharger PDF Budget</button>
-                </div>
-                <div class="recap-actions">
-                    <button onclick="imprimerRapportBudget()">Imprimer le rapport budget</button>
-                    <button class="secondary" onclick="exporterRapportBudget()">Exporter les données budget</button>
-                </div>
-            </div>
-
-            <!-- Onglet Historique des Paiements -->
-            <div id="historique" class="tab-content">
-                <h2>Historique des paiements</h2>
-                <table id="tableau-paiements">
-                    <thead>
-                        <tr>
-                            <th>Parent/Tuteur</th>
-                            <th>Téléphone</th>
-                            <th>Élève(s)</th>
-                            <th>Classe(s)</th>
-                            <th>Montant versé</th>
-                            <th>Reste à payer</th>
-                            <th>Date</th>
-                            <th class="no-print">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Les paiements seront ajoutés ici dynamiquement -->
-                    </tbody>
-                </table>
-
-                <div class="no-print recap-actions">
-                    <button onclick="genererRecapGlobal()">Générer un récapitulatif global</button>
-                    <button onclick="exporterDonnees()">Exporter toutes les données</button>
-                </div>
-                <div class="no-print" style="margin: 10px 0;">
-                    <button onclick="genererPDFHistorique(false)">📄 Prévisualiser PDF (Historique)</button>
-                    <button onclick="genererPDFHistorique(true)">⬇️ Télécharger PDF (Historique)</button>
-                    <button class="print" onclick="imprimerHistorique()">🖨️ Imprimer Historique</button>
-                </div>
-
-                <div id="recap-global" class="recap-container">
-                    <div class="recap-header">
-                        <h2>Récapitulatif Global des Paiements</h2>
-                        <p>Date de génération: <span id="date-recap"></span></p>
-                    </div>
-                    <div id="contenu-recap"></div>
-                    <div class="recap-actions">
-                        <button onclick="imprimerRecap()">Imprimer ce récapitulatif</button>
-                        <button onclick="fermerRecap()">Fermer</button>
-                    </div>
-                    <div class="recap-actions">
-                        <button onclick="genererPDFRecap(false)">📄 Prévisualiser PDF</button>
-                        <button onclick="genererPDFRecap(true)">⬇️ Télécharger PDF</button>
-                        <button onclick="imprimerRecap()">🖨️ Imprimer récapitulatif</button>
-                        <button onclick="fermerRecap()">Fermer</button>
-                    </div>                 
-                </div>
-            </div>
-        </main>
-
-        <footer class="footer no-print">
-            <div class="signature">
-                
-                
-            </div>
-
-            <div id="instructions" class="instructions">
-                <b>Instructions d'utilisation</b>
-                <ul>
-                    <li>1. Renseignez les informations du parent (nom, téléphone, adresse)</li>
-                    <li>2. Ajoutez un ou plusieurs élèves avec le bouton "Ajouter cet élève"</li>
-                    <li>3. Le montant total est calculé automatiquement</li>
-                    <li>4. Saisissez le montant versé, le reste à payer se calcule automatiquement</li>
-                    <li>5. Cliquez sur "Enregistrer le paiement" pour sauvegarder</li>
-                    <li>6. Utilisez le bouton "Envoyer SMS" pour envoyer un récapitulatif au parent</li>
-                    <li>7. Utilisez "Imprimer Historique" pour imprimer uniquement le tableau des paiements</li>
-                    <li>8. Utilisez "Récap Global" pour générer un rapport de tous les parents</li>
-                    <li>9. Consultez l'onglet "Impact sur le Budget" pour voir l'état des recettes</li>
-                    <li>10. Utilisez le bouton 🗑️ pour supprimer un paiement indésirable</li>
-                    <li>11. Consultez la section "Derniers paiements" pour voir les enregistrements récents</li>
-                    <li>12. <strong>Nouveau</strong> : Cette application peut être installée sur votre appareil</li>
-                </ul>
-            </div>
-        </footer>
+        <!-- Carte 5 : Paramètres (optionnel) -->
+        <a href="parametres.html" class="nav-card">
+            <div class="nav-icon">⚙️</div>
+            <h3>Paramètres</h3>
+            <p>Modifier le montant de la cotisation, l’objectif, sauvegardes.</p>
+        </a>
     </div>
-    
-  <script>
-    let payments = [];
-    let tempStudents = [];
-    let currentParentSolde = 0;
-    const COTISATION = 12500;
 
+    <div class="footer">
+        📌 Toutes les données sont stockées localement dans votre navigateur.<br>
+        Utilisez l’export JSON pour sauvegarder vos informations.
+    </div>
+</div>
+     <!-- ... fin du contenu de la page ... -->
+<script>    
     // =============================================
     // GESTION PWA AMÉLIORÉE AVEC BANNIÈRE
     // =============================================
@@ -666,601 +485,21 @@
     window.addEventListener('load', () => {
       new PWAManager();
     });
-
-    // =============================================
-    // 1. OUTILS DE DATE (format français)
-    // =============================================
-    function formatDateFR(dateStr) {
-        if (!dateStr) return '-';
-        const [datePart] = dateStr.split(' ');
-        const [year, month, day] = datePart.split('-');
-        return `${day}/${month}/${year}`;
-    }
-
-    function formatDateHeureFR(dateStr) {
-        if (!dateStr) return '-';
-        const [datePart, timePart] = dateStr.split(' ');
-        const [year, month, day] = datePart.split('-');
-        const heure = timePart ? timePart.substring(0,5) : '';
-        return heure ? `${day}/${month}/${year} à ${heure}` : `${day}/${month}/${year}`;
-    }
-
-    function dateForFilename() {
-        const now = new Date();
-        const day = String(now.getDate()).padStart(2,'0');
-        const month = String(now.getMonth()+1).padStart(2,'0');
-        const year = now.getFullYear();
-        const hours = String(now.getHours()).padStart(2,'0');
-        const minutes = String(now.getMinutes()).padStart(2,'0');
-        const seconds = String(now.getSeconds()).padStart(2,'0');
-        return `${day}-${month}-${year}_${hours}-${minutes}-${seconds}`;
-    }
-
-    // =============================================
-    // 2. NORMALISATION DES ANCIENS PAIEMENTS
-    // =============================================
-    function normalizePayment(p) {
-        if (p.nomParent && !p.parentNom) {
-            return {
-                id: p.id || Date.now(),
-                parentNom: p.nomParent,
-                telephone: p.telephone || '',
-                adresse: p.adresse || '',
-                students: Array.isArray(p.eleves)
-                    ? p.eleves.map(e => ({ nom: e.nom || '', classe: e.cl || e.classe || '' }))
-                    : (Array.isArray(p.students) ? p.students : []),
-                montantVerse: p.montantVerse || 0,
-                resteAPayer: p.restePayer ?? p.resteAPayer ?? 0,
-                date: p.date || new Date().toISOString().slice(0,19).replace('T',' '),
-                observations: p.observations || ''
-            };
-        }
-        return {
-            ...p,
-            students: Array.isArray(p.students)
-                ? p.students.map(s => ({ nom: s.nom || '', classe: s.classe || s.cl || '' }))
-                : [],
-            parentNom: p.parentNom || '',
-            telephone: p.telephone || '',
-            montantVerse: p.montantVerse || 0,
-            resteAPayer: p.resteAPayer || 0,
-            date: p.date || ''
-        };
-    }
-
-    // =============================================
-    // 3. CHARGEMENT / SAUVEGARDE
-    // =============================================
-    function loadData() {
-        const stored = localStorage.getItem('apee_payments');
-        if (stored) {
-            try {
-                let raw = JSON.parse(stored);
-                if (!Array.isArray(raw)) raw = [];
-                payments = raw.map(normalizePayment);
-            } catch (e) {
-                payments = [];
-            }
-        } else {
-            payments = [];
-        }
-        renderHistorique();
-        updateBudget();
-        updateRecentPayments();
-    }
-
-    function saveData() {
-        localStorage.setItem('apee_payments', JSON.stringify(payments));
-        renderHistorique();
-        updateBudget();
-        updateRecentPayments();
-    }
-
-    // =============================================
-    // 4. GESTION DES PARENTS / ÉLÈVES
-    // =============================================
-    function getParentUnpaid(nom, tel) {
-        if (!nom || !tel) return 0;
-        return payments
-            .filter(p => p.parentNom.toLowerCase() === nom.toLowerCase() && p.telephone === tel)
-            .reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
-    }
-
-    function refreshParentStatus() {
-        const nom = document.getElementById('nom-parent').value.trim();
-        const tel = document.getElementById('telephone').value.trim();
-        if (nom && tel) {
-            const unpaid = getParentUnpaid(nom, tel);
-            currentParentSolde = unpaid;
-            const statutSpan = document.getElementById('statut-parent');
-            const detailsDiv = document.getElementById('details-parent');
-            if (unpaid > 0) {
-                statutSpan.innerHTML = `⚠️ Parent existant - Dette impayée: ${unpaid.toLocaleString()} FCFA`;
-                detailsDiv.innerHTML = `<small>Solde antérieur à régulariser.</small>`;
-                document.getElementById('paiement-dette').style.display = 'block';
-            } else {
-                statutSpan.innerHTML = `✅ Nouveau parent ou solde à jour.`;
-                detailsDiv.innerHTML = '';
-                document.getElementById('paiement-dette').style.display = 'none';
-            }
-        } else {
-            document.getElementById('paiement-dette').style.display = 'none';
-            currentParentSolde = 0;
-            document.getElementById('statut-parent').innerHTML = 'Entrez nom & téléphone';
-        }
-        updateTotalDue();
-    }
-
-    function updateTotalDue() {
-        const studentsCost = tempStudents.length * COTISATION;
-        const totalDue = studentsCost + currentParentSolde;
-        document.getElementById('montant-total').value = totalDue.toLocaleString() + ' FCFA';
-        const verse = parseFloat(document.getElementById('montant-verse').value) || 0;
-        const reste = Math.max(0, totalDue - verse);
-        document.getElementById('reste-payer').value = reste.toLocaleString() + ' FCFA';
-    }
-
-    function ajouterEleve() {
-        const nom = document.getElementById('nom-eleve').value.trim();
-        const classe = document.getElementById('classe').value.trim();
-        if (!nom || !classe) {
-            alert('Veuillez remplir le nom et la classe de l\'élève.');
-            return;
-        }
-        tempStudents.push({ nom, classe });
-        afficherListeEleves();
-        updateTotalDue();
-        document.getElementById('nom-eleve').value = '';
-        document.getElementById('classe').value = '';
-    }
-
-    function afficherListeEleves() {
-        const container = document.getElementById('liste-eleves');
-        if (!container) return;
-        if (tempStudents.length === 0) {
-            container.innerHTML = '<em>Aucun élève ajouté</em>';
-            return;
-        }
-        container.innerHTML = tempStudents.map((s, idx) =>
-            `<div class="student-item">
-                <span><strong>${s.nom}</strong> - ${s.classe}</span>
-                <button class="delete-student" onclick="retirerEleve(${idx})">Supprimer</button>
-            </div>`
-        ).join('');
-    }
-
-    function retirerEleve(idx) {
-        tempStudents.splice(idx, 1);
-        afficherListeEleves();
-        updateTotalDue();
-    }
-
-    // =============================================
-    // 5. ENREGISTREMENT D'UN PAIEMENT
-    // =============================================
-    function enregistrerPaiement() {
-        const nom = document.getElementById('nom-parent').value.trim();
-        const telephone = document.getElementById('telephone').value.trim();
-        const adresse = document.getElementById('adresse').value;
-        const observations = document.getElementById('observations').value;
-        const montantVerse = parseFloat(document.getElementById('montant-verse').value);
-        if (!nom || !telephone) { alert("Nom et téléphone obligatoires"); return; }
-        if (tempStudents.length === 0 && currentParentSolde === 0) {
-            alert("Ajoutez au moins un élève ou il y a une dette à payer."); return;
-        }
-        if (isNaN(montantVerse) || montantVerse <= 0) { alert("Montant versé invalide"); return; }
-        const studentsCost = tempStudents.length * COTISATION;
-        const totalDue = studentsCost + currentParentSolde;
-        if (montantVerse > totalDue) { alert("Le montant versé ne peut pas dépasser le dû total."); return; }
-        const reste = totalDue - montantVerse;
-        const newPayment = {
-            id: Date.now(),
-            parentNom: nom,
-            telephone,
-            adresse,
-            students: [...tempStudents],
-            montantVerse: montantVerse,
-            resteAPayer: reste,
-            date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            observations
-        };
-        payments.push(newPayment);
-        saveData();
-        tempStudents = [];
-        afficherListeEleves();
-        document.getElementById('montant-verse').value = '';
-        document.getElementById('observations').value = '';
-        document.getElementById('adresse').value = '';
-        updateTotalDue();
-        refreshParentStatus();
-        alert("Paiement enregistré avec succès !");
-    }
-
-    // =============================================
-    // 6. AFFICHAGE HISTORIQUE (TABLEAU)
-    // =============================================
-    function renderHistorique() {
-        const tbody = document.querySelector('#tableau-paiements tbody');
-        if (!tbody) return;
-        if (payments.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8">Aucun paiement enregistré</td></tr>';
-            return;
-        }
-        tbody.innerHTML = payments.map(p => {
-            const students = Array.isArray(p.students) ? p.students : [];
-            const elevesNoms = students.map(s => s.nom || '?').join(', ') || '-';
-            const elevesClasses = students.map(s => s.classe || '?').join(', ') || '-';
-            return `
-                <tr>
-                    <td>${p.parentNom || '-'}</td>
-                    <td>${p.telephone || '-'}</td>
-                    <td>${elevesNoms}</td>
-                    <td>${elevesClasses}</td>
-                    <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
-                    <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
-                    <td>${formatDateFR(p.date)}</td>
-                    <td class="no-print"><button onclick="supprimerPaiement(${p.id})" style="background:#dc3545;">🗑️ Supprimer</button></td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    function supprimerPaiement(id) {
-        if (confirm("Supprimer définitivement ce paiement ?")) {
-            payments = payments.filter(p => p.id !== id);
-            saveData();
-            refreshParentStatus();
-            updateTotalDue();
-        }
-    }
-
-    // =============================================
-    // 7. BUDGET & STATISTIQUES
-    // =============================================
-    function updateBudget() {
-        const totalRecettes = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
-        const objectif = 1250000;
-        const taux = (totalRecettes / objectif) * 100;
-        const recettesElt = document.getElementById('recettes-realisees');
-        const tauxElt = document.getElementById('taux-realisation');
-        const barFill = document.getElementById('progress-bar-fill');
-        if (recettesElt) recettesElt.innerText = totalRecettes.toLocaleString() + ' FCFA';
-        if (tauxElt) tauxElt.innerText = taux.toFixed(1) + '%';
-        if (barFill) {
-            barFill.style.width = Math.min(taux, 100) + '%';
-            barFill.innerText = Math.min(taux, 100).toFixed(0) + '%';
-        }
-
-        const moisMap = new Map();
-        payments.forEach(p => {
-            if (!p.date) return;
-            const [datePart] = p.date.split(' ');
-            const [year, monthNum] = datePart.split('-');
-            const mois = `${year}-${monthNum}`;
-            if (!moisMap.has(mois)) moisMap.set(mois, { nb: 0, montant: 0, eleves: 0 });
-            const entry = moisMap.get(mois);
-            entry.nb += 1;
-            entry.montant += (p.montantVerse || 0);
-            entry.eleves += Array.isArray(p.students) ? p.students.length : 0;
-        });
-        const tbodyMensuel = document.getElementById('details-mensuels');
-        if (tbodyMensuel) {
-            if (moisMap.size === 0) {
-                tbodyMensuel.innerHTML = '<tr><td colspan="4">Aucune donnée</td></tr>';
-            } else {
-                const moisFR = {
-                    '01': 'Janvier', '02': 'Février', '03': 'Mars',
-                    '04': 'Avril', '05': 'Mai', '06': 'Juin',
-                    '07': 'Juillet', '08': 'Août', '09': 'Septembre',
-                    '10': 'Octobre', '11': 'Novembre', '12': 'Décembre'
-                };
-                tbodyMensuel.innerHTML = Array.from(moisMap.entries())
-                    .map(([mois, data]) => {
-                        const [annee, moisNum] = mois.split('-');
-                        const moisTexte = moisFR[moisNum] || moisNum;
-                        return `<tr><td>${moisTexte} ${annee}</td><td>${data.nb}</td><td>${data.montant.toLocaleString()} FCFA</td><td>${data.eleves}</td></tr>`;
-                    })
-                    .join('');
-            }
-        }
-    }
-
-    function updateRecentPayments() {
-        const container = document.getElementById('derniers-paiements');
-        if (!container) return;
-        const recent = [...payments].reverse().slice(0, 5);
-        if (recent.length === 0) {
-            container.innerHTML = '<em>Aucun paiement récent</em>';
-            return;
-        }
-        container.innerHTML = recent.map(p =>
-            `<div class="paiement-item">📌 ${escapeHtml(p.parentNom) || '?'} - ${(p.montantVerse || 0).toLocaleString()} FCFA le ${formatDateFR(p.date)}</div>`
-        ).join('');
-    }
-
-    // =============================================
-    // 8. IMPRESSIONS & PDF
-    // =============================================
-    function getPrintStyles() {
-        return `body { font-family: sans-serif; margin:20px; } .print-container { max-width:100%; } table { width:100%; border-collapse:collapse; } th,td { border:1px solid #aaa; padding:8px; text-align:left; }`;
-    }
-
-    // =============================================
-    // GÉNÉRATION DE PDF avec html2pdf
-    // =============================================
-
-    function genererPDFBudget(download = false) {
-        const budgetContent = document.getElementById('budget').cloneNode(true);
-        budgetContent.querySelectorAll('.no-print, .recap-actions, button').forEach(el => el.remove());
-        
-        const element = document.createElement('div');
-        element.innerHTML = `
-            <h1 style="text-align:center; margin-bottom: 20px;">Rapport d'impact budgétaire</h1>
-            ${budgetContent.innerHTML}
-        `;
-        
-        const opt = {
-            margin: 10,
-            filename: `budget_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-        };
-        
-        if (download) {
-            html2pdf().set(opt).from(element).save();
-        } else {
-            html2pdf().set(opt).from(element).outputPdf('dataurlstring', (pdfAsString) => {
-                const pdfWindow = window.open();
-                pdfWindow.document.write(`<iframe src="${pdfAsString}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
-            });
-        }
-    }
-
-    function genererPDFHistorique(download = false) {
-        const historiqueContent = document.getElementById('historique').cloneNode(true);
-        historiqueContent.querySelectorAll('.no-print, .recap-actions, button, .recap-container').forEach(el => el.remove());
-        
-        const element = document.createElement('div');
-        element.innerHTML = `
-            <h1 style="text-align:center; margin-bottom: 20px;">Historique des cotisations</h1>
-            ${historiqueContent.innerHTML}
-        `;
-        
-        const opt = {
-            margin: 10,
-            filename: `historique_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-        };
-        
-        if (download) {
-            html2pdf().set(opt).from(element).save();
-        } else {
-            html2pdf().set(opt).from(element).outputPdf('dataurlstring', (pdfAsString) => {
-                const pdfWindow = window.open();
-                pdfWindow.document.write(`<iframe src="${pdfAsString}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
-            });
-        }
-    }
-
-    function genererPDFRecap(download = false) {
-        const recapElem = document.getElementById('recap-global');
-        if (!recapElem || recapElem.style.display === 'none') {
-            alert("Veuillez d'abord générer le récapitulatif global.");
-            return;
-        }
-        
-        const recapClone = recapElem.cloneNode(true);
-        recapClone.querySelectorAll('.recap-actions, button').forEach(el => el.remove());
-        
-        const opt = {
-            margin: 10,
-            filename: `recap_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-        };
-        
-        if (download) {
-            html2pdf().set(opt).from(recapClone).save();
-        } else {
-            html2pdf().set(opt).from(recapClone).outputPdf('dataurlstring', (pdfAsString) => {
-                const pdfWindow = window.open();
-                pdfWindow.document.write(`<iframe src="${pdfAsString}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
-            });
-        }
-    }
-
-    function imprimerHistorique() {
-        const historiqueContent = document.getElementById('historique').cloneNode(true);
-        historiqueContent.querySelectorAll('.no-print, .recap-actions, button, .recap-container').forEach(el => el.remove());
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html><head><title>Historique des paiements</title>
-            <style>${getPrintStyles()}</style></head>
-            <body><div class="print-container"><h1 style="text-align:center;">Historique des cotisations</h1>${historiqueContent.innerHTML}</div></body></html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    }
-
-    function imprimerRapportBudget() {
-        const budgetContent = document.getElementById('budget').cloneNode(true);
-        budgetContent.querySelectorAll('.no-print, .recap-actions, button').forEach(el => el.remove());
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html><head><title>Rapport Budget</title>
-            <style>${getPrintStyles()}</style></head>
-            <body><div class="print-container"><h1 style="text-align:center;">Rapport d'impact budgétaire</h1>${budgetContent.innerHTML}</div></body></html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    }
-
-    function imprimerRecap() {
-        const recapElem = document.getElementById('recap-global');
-        if (!recapElem || recapElem.style.display === 'none') {
-            alert("Veuillez d'abord générer le récapitulatif global.");
-            return;
-        }
-        const recapClone = recapElem.cloneNode(true);
-        recapClone.querySelectorAll('.recap-actions, button').forEach(el => el.remove());
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html><head><title>Récapitulatif Global</title>
-            <style>${getPrintStyles()}</style></head>
-            <body><div class="print-container">${recapClone.innerHTML}</div></body></html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    }
-
-    function genererRecapGlobal() {
-        if (!payments || payments.length === 0) {
-            alert("Aucun paiement enregistré.");
-            return;
-        }
-        let html = `<table border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
-            <thead><tr><th>Parent</th><th>Téléphone</th><th>Élèves</th><th>Total versé</th><th>Solde restant</th><th>Date</th></tr></thead><tbody>`;
-        payments.forEach(p => {
-            const studentsList = Array.isArray(p.students) ? p.students.map(s => `${s.nom || '?'} (${s.classe || '?'})`).join(', ') : '-';
-            html += `<tr>
-                <td>${escapeHtml(p.parentNom) || '-'}</td>
-                <td>${escapeHtml(p.telephone) || '-'}</td>
-                <td>${studentsList}</td>
-                <td>${(p.montantVerse || 0).toLocaleString()} FCFA</td>
-                <td>${(p.resteAPayer || 0).toLocaleString()} FCFA</td>
-                <td>${formatDateFR(p.date)}</td>
-            </tr>`;
-        });
-        const totalGlobal = payments.reduce((sum, p) => sum + (p.montantVerse || 0), 0);
-        const totalReste = payments.reduce((sum, p) => sum + (p.resteAPayer || 0), 0);
-        html += `<tr style="background:#e9ecef; font-weight:bold;">
-            <td colspan="3">TOTAUX</td>
-            <td>${totalGlobal.toLocaleString()} FCFA</td>
-            <td>${totalReste.toLocaleString()} FCFA</td>
-            <td></td>
-        </tr></tbody></table>`;
-        document.getElementById('contenu-recap').innerHTML = html;
-        document.getElementById('date-recap').innerText = new Date().toLocaleDateString('fr-FR', {
-            day: 'numeric', month: 'long', year: 'numeric'
-        });
-        document.getElementById('recap-global').style.display = 'block';
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
-    }
-
-    function fermerRecap() { document.getElementById('recap-global').style.display = 'none'; }
-    function afficherRecap() { genererRecapGlobal(); }
-
-    // =============================================
-    // 9. SMS (simulé)
-    // =============================================
-    function envoyerSMS() { alert("📲 Simulateur SMS: Un récapitulatif serait envoyé au parent via SMS."); }
-
-    // =============================================
-    // 10. EXPORT / IMPORT
-    // =============================================
-    function exporterPaiements() {
-        const dataStr = JSON.stringify(payments, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `paiements_${dateForFilename()}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        alert("Export JSON réussi");
-    }
-
-    function importerPaiements() {
-        const input = document.getElementById('file-input');
-        input.onchange = e => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = ev => {
+    
+        function updateAssociationName() {
+            const stored = localStorage.getItem('apee_app_settings');
+            if (stored) {
                 try {
-                    const imported = JSON.parse(ev.target.result);
-                    if (Array.isArray(imported)) {
-                        payments = imported.map(normalizePayment);
-                        saveData();
-                        alert("Import réussi");
-                        location.reload();
-                    } else alert("Format invalide");
-                } catch (err) { alert("Erreur fichier JSON"); }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    }
-
-    function sauvegarderBackup() {
-        const backup = { payments, version: "1.0", date: new Date() };
-        const dataStr = JSON.stringify(backup, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `backup_apee_${dateForFilename()}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        alert("Backup complet sauvegardé");
-    }
-
-    function exporterDonnees() { exporterPaiements(); }
-    function exporterRapportBudget() {
-        alert("Export CSV budget: " + JSON.stringify(payments.map(p=>({date:p.date,montant:p.montantVerse,parent:p.parentNom}))));
-    }
-
-    // =============================================
-    // 11. NAVIGATION PAR ONGLETS
-    // =============================================
-    function showTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        if (tabId === 'paiement') document.querySelectorAll('.tab-button')[0].classList.add('active');
-        else if (tabId === 'budget') document.querySelectorAll('.tab-button')[1].classList.add('active');
-        else if (tabId === 'historique') document.querySelectorAll('.tab-button')[2].classList.add('active');
-        if (tabId === 'budget') updateBudget();
-        if (tabId === 'historique') renderHistorique();
-    }
-
-    // =============================================
-    // 13. ÉCOUTEURS & INITIALISATION
-    // =============================================
-    document.getElementById('nom-parent')?.addEventListener('input', refreshParentStatus);
-    document.getElementById('telephone')?.addEventListener('input', refreshParentStatus);
-    document.getElementById('montant-verse')?.addEventListener('input', () => updateTotalDue());
-
-    // Expositions globales
-    window.showTab = showTab;
-    window.ajouterEleve = ajouterEleve;
-    window.retirerEleve = retirerEleve;
-    window.enregistrerPaiement = enregistrerPaiement;
-    window.supprimerPaiement = supprimerPaiement;
-    window.imprimerHistorique = imprimerHistorique;
-    window.imprimerRapportBudget = imprimerRapportBudget;
-    window.imprimerRecap = imprimerRecap;
-    window.genererRecapGlobal = genererRecapGlobal;
-    window.fermerRecap = fermerRecap;
-    window.afficherRecap = afficherRecap;
-    window.envoyerSMS = envoyerSMS;
-    window.exporterPaiements = exporterPaiements;
-    window.importerPaiements = importerPaiements;
-    window.sauvegarderBackup = sauvegarderBackup;
-    window.exporterDonnees = exporterDonnees;
-    window.exporterRapportBudget = exporterRapportBudget;
-    window.genererPDFBudget = genererPDFBudget;
-    window.genererPDFHistorique = genererPDFHistorique;
-    window.genererPDFRecap = genererPDFRecap;
-
-    loadData();
-    refreshParentStatus();
-</script> 
-
+                    const settings = JSON.parse(stored);
+                    if (settings.nomAssociation) {
+                        document.querySelector('.header h1').innerHTML = `📋 ${settings.nomAssociation}`;
+                    }
+                } catch(e) {}
+            }
+        }
+         updateAssociationName();   
+    
+    </script>
 </body>
-</html>
+</html>  
+
