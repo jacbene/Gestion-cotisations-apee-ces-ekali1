@@ -6,8 +6,7 @@ const urlsToCache = [
   './bilan-financier.html',
   './gestion-financiere.html',
   './parametres.html',
-  './manifest.json',
-  './public/style.css'
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {
