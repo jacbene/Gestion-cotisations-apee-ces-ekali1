@@ -1,30 +1,31 @@
-const CACHE_NAME = 'apee-ekali-v1';
+const CACHE_NAME = 'apee-ekali-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/formulaire-cotisations.html',
-  '/bilan-financier.html',
-  '/gestion-financiere.html',
-  '/parametres.html',
-  '/manifest.json'
+  './',
+  './index.html',
+  './bilan-financier.html',
+  './manifest.json',
+  './public/style.css'
 ];
 
-// Installation : mise en cache des ressources principales
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        return cache.addAll(urlsToCache).catch(err => {
+          console.warn('Certaines ressources n\'ont pas pu être cachées:', err);
+        });
+      })
       .then(() => self.skipWaiting())
   );
 });
 
-// Activation : nettoyer les anciens caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cache => {
           if (cache !== CACHE_NAME) {
+            console.log('Suppression du cache ancien:', cache);
             return caches.delete(cache);
           }
         })
@@ -33,32 +34,36 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Stratégie de fetch : cache d'abord, puis réseau
 self.addEventListener('fetch', event => {
+  // Ignorer les requêtes non-GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Retourne la réponse en cache si elle existe
         if (response) {
           return response;
         }
-        // Sinon, va chercher sur le réseau
-        return fetch(event.request).then(
-          networkResponse => {
-            // Vérifie si c'est une réponse valide
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              return networkResponse;
-            }
-            // Clone et stocke en cache pour la prochaine fois
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
+        return fetch(event.request).then(networkResponse => {
+          if (!networkResponse || networkResponse.status !== 200) {
             return networkResponse;
           }
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        // Fallback offline
+        return new Response(
+          'Contenu non disponible hors ligne',
+          { status: 503, statusText: 'Service Unavailable' }
         );
       })
   );
 });
-
