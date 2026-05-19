@@ -2,7 +2,9 @@ const CACHE_NAME = 'apee-ekali-v2';
 const urlsToCache = [
   './',
   './index.html',
+  './formulaire-cotisations.html',
   './bilan-financier.html',
+  './gestion-financiere.html',
   './manifest.json',
   './public/style.css'
 ];
