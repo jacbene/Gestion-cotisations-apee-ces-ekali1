@@ -199,16 +199,136 @@
         }
          updateAssociationName();   
     
-        // Enregistrement du Service Worker pour la PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                    console.log('Service Worker enregistré avec succès :', reg);
-                }).catch(function(err) {
-                    console.error('Erreur lors de l\'enregistrement du Service Worker :', err);
-                });
+// =============================================
+// GESTION PWA AMÉLIORÉE (ANDROID & iOS)
+// =============================================
+class PWAManager {
+  constructor() {
+    this.deferredPrompt = null;
+    this.isInstalled = this.checkIfInstalled();
+    this.init();
+  }
+
+  checkIfInstalled() {
+    // Détection fiable de l'installation
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.includes('android-app://')
+    );
+  }
+
+  init() {
+    if (this.isInstalled) {
+      this.hideInstallPrompt();
+      this.setupStandaloneMode();
+      return;
+    }
+
+    this.setupInstallPrompt();
+    this.registerServiceWorker();
+  }
+
+  setupInstallPrompt() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.showInstallPrompt();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('✅ Application installée avec succès');
+      this.deferredPrompt = null;
+      this.hideInstallPrompt();
+    });
+  }
+
+  showInstallPrompt() {
+    const pwaStatus = document.getElementById('pwa-status');
+    if (!pwaStatus) return;
+
+    pwaStatus.style.display = 'block';
+    const pwaMessage = document.getElementById('pwa-message');
+    const installButton = document.getElementById('install-button');
+
+    if (pwaMessage) {
+      pwaMessage.textContent = '📱 Cette application peut être installée sur votre appareil';
+    }
+
+    if (installButton) {
+      installButton.style.display = 'inline-block';
+      installButton.onclick = () => this.installApp();
+    }
+  }
+
+  hideInstallPrompt() {
+    const pwaStatus = document.getElementById('pwa-status');
+    if (pwaStatus) {
+      pwaStatus.style.display = 'none';
+    }
+  }
+
+  async installApp() {
+    if (!this.deferredPrompt) {
+      console.log('Installation non disponible');
+      return;
+    }
+
+    const installButton = document.getElementById('install-button');
+    const pwaMessage = document.getElementById('pwa-message');
+
+    if (installButton) installButton.style.display = 'none';
+    if (pwaMessage) pwaMessage.textContent = '⏳ Installation en cours...';
+
+    this.deferredPrompt.prompt();
+    const { outcome } = await this.deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      if (pwaMessage) pwaMessage.textContent = '✅ Application installée avec succès!';
+      console.log('Application installée');
+    } else {
+      if (pwaMessage) pwaMessage.textContent = '❌ Installation annulée';
+    }
+
+    this.deferredPrompt = null;
+    setTimeout(() => this.hideInstallPrompt(), 3000);
+  }
+
+  setupStandaloneMode() {
+    // Masquer les contrôles du navigateur
+    document.documentElement.style.height = '100vh';
+    document.body.style.height = '100vh';
+
+    // Gestion de la barre de statut (iOS)
+    const meta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (meta) {
+      meta.setAttribute('content', 'black-translucent');
+    }
+  }
+
+  registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+          console.log('✅ Service Worker enregistré', reg.scope);
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('🔄 Mise à jour disponible');
+              }
             });
-        }
+          });
+        })
+        .catch(err => console.error('❌ Erreur SW:', err));
+    }
+  }
+}
+
+// Initialiser au chargement
+window.addEventListener('load', () => {
+  new PWAManager();
+});
     </script>
 </body>
 </html>  
