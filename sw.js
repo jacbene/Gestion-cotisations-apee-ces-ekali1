@@ -5,6 +5,7 @@ const urlsToCache = [
   './formulaire-cotisations.html',
   './bilan-financier.html',
   './gestion-financiere.html',
+  './recherche-parent.html',
   './parametres.html',
   './manifest.json'
 ];
