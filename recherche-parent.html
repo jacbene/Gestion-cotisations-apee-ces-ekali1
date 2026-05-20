@@ -321,6 +321,20 @@
     </style>
 </head>
 <body>
+    <script>
+  window.addEventListener('load', () => {
+    const testKey = 'apee_payments';
+    const data = localStorage.getItem(testKey);
+    console.log('Clé utilisée :', testKey);
+    console.log('Données brutes :', data);
+    if (!data) {
+      const msg = document.createElement('div');
+      msg.className = 'alert alert-warning';
+      msg.innerHTML = '⚠️ Aucune donnée de paiement trouvée dans le stockage local. Avez-vous enregistré des cotisations depuis cette navigation ?';
+      document.querySelector('.container').prepend(msg);
+    }
+  });
+</script>
 <div class="container">
     <a href="index.html" class="return-link no-print">← Retour à l'accueil</a>
     
