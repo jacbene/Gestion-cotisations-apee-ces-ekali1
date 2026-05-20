@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#2e7d32">
+    <title>APEE CES EKALI 1 - Enregistrer une cotisation</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        body {
+            background: #eef2f5;
+            padding: 24px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .return-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #2e7d32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-left: 5px solid #2e7d32;
+            padding-left: 16px;
+            margin-bottom: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            color: #2c5a2e;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            background: white;
+        }
+        button {
+            background: #2e7d32;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 48px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover { background: #1b5e20; transform: translateY(-2px); }
+        .btn-secondary { background: #2c3e66; }
+        .btn-outline {
+            background: #f4f7fb;
+            color: #1e4620;
+            border: 1px solid #cbdde6;
+            box-shadow: none;
+        }
+        .student-entry {
+            background: #f9fbfd;
+            padding: 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .remove-student {
+            background: #dc2626;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+        }
+        .add-student {
+            margin-top: 10px;
+            background: #4b5563;
+        }
+        .flex-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        hr { margin: 20px 0; }
+        .info-badge {
+            background: #eef2ff;
+            padding: 8px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+        .solde-info {
+            background: #e8f0fe;
+            padding: 12px;
+            border-radius: 20px;
+            margin: 10px 0;
+            border-left: 4px solid #2e7d32;
+        }
+        .alert-success {
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .hidden { display: none; }
+        .warning-message {
+            color: #b45309;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="index.html" class="return-link">← Retour à l'accueil</a>
+
+    <div class="card">
+        <div class="card-title" id="formTitle">📝 Nouvelle cotisation</div>
+        
+        <form id="cotisationForm">
+            <div class="form-group">
+                <label>Nom du parent / tuteur *</label>
+                <input type="text" id="parentNom" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Téléphone (pour reconnaissance) *</label>
+                <input type="tel" id="telephone" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Adresse</label>
+                <input type="text" id="adresse">
+            </div>
+
+            <!-- Zone d'affichage du solde antérieur -->
+            <div id="soldeAntérieurDiv" class="solde-info" style="display:none;"></div>
+
+            <label>Élèves concernés par ce versement (si vous inscrivez de nouveaux enfants)</label>
+            <div id="studentsContainer">
+                <!-- Par défaut, un élève, mais l'utilisateur pourra tout supprimer -->
+                <div class="student-entry" data-index="0">
+                    <div class="student-header">
+                        <span>Élève 1</span>
+                        <button type="button" class="remove-student btn-outline" style="background:#fee2e2;">Supprimer</button>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="Nom complet" class="student-name">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="Classe (ex: 3ème)" class="student-class">
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="addStudentBtn" class="add-student">+ Ajouter un élève (nouvelle inscription)</button>
+            <div class="warning-message">💡 Si vous souhaitez uniquement payer une partie de votre dette existante, laissez la liste des élèves vide.</div>
+
+            <hr>
+            <div class="form-group">
+                <label>Montant versé aujourd'hui (FCFA) *</label>
+                <input type="number" id="montantVerse" step="1" inputmode="numeric" value="0" required>
+                <small id="cotisationInfo">Cotisation par élève : </small>
+            </div>
+            <div class="form-group">
+                <label>Nouveau reste à payer après ce versement</label>
+                <input type="number" id="resteAPayer" readonly style="background:#f0f2f5;">
+            </div>
+            <div class="form-group">
+                <label>Date du paiement</label>
+                <input type="date" id="datePaiement" value="">
+            </div>
+            <div class="form-group">
+                <label>Observations</label>
+                <textarea id="observations" rows="2"></textarea>
+            </div>
+
+            <div class="flex-buttons">
+                <button type="submit">💾 Enregistrer la cotisation</button>
+                <button type="button" id="resetFormBtn" class="btn-outline">🔄 Réinitialiser</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-title">📊 Dernières cotisations enregistrées</div>
+        <div id="recentPaymentsList" style="max-height: 300px; overflow-y: auto;">
+            <p class="info-badge">Aucune donnée pour le moment</p>
+        </div>
+        <button id="voirBilanBtn" class="btn-secondary" style="margin-top: 15px;">📈 Voir le bilan complet</button>
+    </div>
+</div>
+
+<script>
+    // ==================== PARAMÈTRES ====================
+    let cotisationParEleve = 12500;
+    let nomAssociation = "APEE CES D'EKALI 1 - MFOU";
+    const STORAGE_PAYMENTS_KEY = 'apee_payments_bilan';
+    const STORAGE_SETTINGS_KEY = 'apee_app_settings';
+
+    function chargerParametres() {
+        const stored = localStorage.getItem(STORAGE_SETTINGS_KEY);
+        if (stored) {
+            try {
+                const settings = JSON.parse(stored);
+                cotisationParEleve = settings.cotisationParEleve || 12500;
+                nomAssociation = settings.nomAssociation || "APEE CES D'EKALI 1 - MFOU";
+                document.getElementById('formTitle').innerHTML = `📝 ${nomAssociation} - Nouvelle cotisation`;
+                document.getElementById('cotisationInfo').innerHTML = `Cotisation par élève : ${cotisationParEleve.toLocaleString()} FCFA`;
+            } catch(e) {}
+        } else {
+            document.getElementById('cotisationInfo').innerHTML = `Cotisation par élève : ${cotisationParEleve.toLocaleString()} FCFA`;
+        }
+    }
+
+    // ==================== GESTION DES PAIEMENTS ====================
+    function getPayments() {
+        const stored = localStorage.getItem(STORAGE_PAYMENTS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function savePayments(payments) {
+        localStorage.setItem(STORAGE_PAYMENTS_KEY, JSON.stringify(payments));
+    }
+
+    // Retourne le solde d'un parent (total dû - total versé)
+    function getParentSolde(nom, telephone) {
+        const payments = getPayments();
+        let totalDu = 0;
+        let totalVerse = 0;
+        payments.forEach(p => {
+            if (p.parentNom === nom && p.telephone === telephone) {
+                const dueThisTransaction = (p.students?.length || 0) * cotisationParEleve;
+                totalDu += dueThisTransaction;
+                totalVerse += p.montantVerse || 0;
+            }
+        });
+        const soldeRestant = totalDu - totalVerse;
+        return { totalDu, totalVerse, soldeRestant };
+    }
+
+    // Met à jour l'affichage du solde antérieur et recalcule le reste à payer
+    let rechercheTimeout;
+    function rechercherParent() {
+        clearTimeout(rechercheTimeout);
+        rechercheTimeout = setTimeout(() => {
+            const nom = document.getElementById('parentNom').value.trim();
+            const tel = document.getElementById('telephone').value.trim();
+            const soldeDiv = document.getElementById('soldeAntérieurDiv');
+            if (nom && tel) {
+                const solde = getParentSolde(nom, tel);
+                if (solde.soldeRestant > 0) {
+                    soldeDiv.style.display = 'block';
+                    soldeDiv.innerHTML = `<strong>💰 Solde antérieur :</strong> ${solde.soldeRestant.toLocaleString()} FCFA restant à payer<br>
+                    (Total dû : ${solde.totalDu.toLocaleString()} FCFA, déjà versé : ${solde.totalVerse.toLocaleString()} FCFA)<br>
+                    Ce montant sera ajouté au dû des nouveaux élèves. Si vous ne saisissez aucun élève, vous payez uniquement sur ce solde.`;
+                } else if (solde.totalDu > 0 && solde.soldeRestant <= 0) {
+                    soldeDiv.style.display = 'block';
+                    soldeDiv.innerHTML = `<strong>✅ Compte à jour</strong> - Aucun solde restant. Vous pouvez ajouter des élèves.`;
+                } else {
+                    soldeDiv.style.display = 'none';
+                }
+            } else {
+                soldeDiv.style.display = 'none';
+            }
+            calculerResteAPayer();
+        }, 500);
+    }
+
+    // ==================== GESTION DES ÉLÈVES ====================
+    const studentsContainer = document.getElementById('studentsContainer');
+    const addStudentBtn = document.getElementById('addStudentBtn');
+    const montantVerseInput = document.getElementById('montantVerse');
+    const resteAPayerInput = document.getElementById('resteAPayer');
+
+    function computeTotalDueNewStudents() {
+        const studentDivs = document.querySelectorAll('.student-entry');
+        let filledStudents = 0;
+        studentDivs.forEach(div => {
+            const nameInput = div.querySelector('.student-name');
+            // On considère qu'un élève est "ajouté" uniquement si son nom est renseigné
+            if (nameInput && nameInput.value.trim() !== "") {
+                filledStudents++;
+            }
+        });
+        return filledStudents * cotisationParEleve;
+    }
+
+    function calculerResteAPayer() {
+        const nom = document.getElementById('parentNom').value.trim();
+        const tel = document.getElementById('telephone').value.trim();
+        let soldePrecedent = 0;
+        if (nom && tel) {
+            const solde = getParentSolde(nom, tel);
+            soldePrecedent = Math.max(0, solde.soldeRestant);
+        }
+        const totalNouveaux = computeTotalDueNewStudents();
+        const totalDueGlobal = soldePrecedent + totalNouveaux;
+        const versement = Math.floor(parseFloat(montantVerseInput.value)) || 0;
+        const reste = Math.max(0, totalDueGlobal - versement);
+        resteAPayerInput.value = reste;
+    }
+
+    function bindStudentChanges() {
+        const studentDivs = document.querySelectorAll('.student-entry');
+        studentDivs.forEach((div) => {
+            const removeBtn = div.querySelector('.remove-student');
+            if (removeBtn) {
+                // Toujours actif : on peut supprimer n'importe quel élève, y compris le dernier
+                removeBtn.onclick = () => {
+                    div.remove();
+                    reindexStudents();
+                    calculerResteAPayer();
+                };
+            }
+            // Détecter les changements dans les champs nom pour recalculer
+            const nameInput = div.querySelector('.student-name');
+            if (nameInput) {
+                nameInput.addEventListener('input', () => calculerResteAPayer());
+            }
+        });
+        calculerResteAPayer();
+    }
+
+    function reindexStudents() {
+        const divs = document.querySelectorAll('.student-entry');
+        divs.forEach((div, i) => {
+            const headerSpan = div.querySelector('.student-header span');
+            if (headerSpan) headerSpan.innerText = `Élève ${i+1}`;
+        });
+        bindStudentChanges();
+    }
+
+    addStudentBtn.addEventListener('click', () => {
+        const newIndex = document.querySelectorAll('.student-entry').length;
+        const template = document.createElement('div');
+        template.className = 'student-entry';
+        template.innerHTML = `
+            <div class="student-header">
+                <span>Élève ${newIndex+1}</span>
+                <button type="button" class="remove-student btn-outline" style="background:#fee2e2;">Supprimer</button>
+            </div>
+            <div class="form-group">
+                <input type="text" placeholder="Nom complet" class="student-name">
+            </div>
+            <div class="form-group">
+                <input type="text" placeholder="Classe (ex: 3ème)" class="student-class">
+            </div>
+        `;
+        studentsContainer.appendChild(template);
+        reindexStudents();
+        calculerResteAPayer();
+    });
+
+    montantVerseInput.addEventListener('input', calculerResteAPayer);
+    document.getElementById('parentNom').addEventListener('input', rechercherParent);
+    document.getElementById('telephone').addEventListener('input', rechercherParent);
+
+    // Observer pour capturer les suppressions/ajouts
+    const observer = new MutationObserver(() => {
+        calculerResteAPayer();
+        bindStudentChanges();
+    });
+    observer.observe(studentsContainer, { childList: true, subtree: true });
+    bindStudentChanges();
+
+    // ==================== ENREGISTREMENT ET AFFICHAGE RÉCAPITULATIF ====================
+    function collectFormData() {
+        const parentNom = document.getElementById('parentNom').value.trim();
+        if (!parentNom) throw new Error("Nom du parent requis");
+        const telephone = document.getElementById('telephone').value.trim();
+        if (!telephone) throw new Error("Numéro de téléphone requis");
+        const adresse = document.getElementById('adresse').value.trim();
+        
+        const students = [];
+        const studentDivs = document.querySelectorAll('.student-entry');
+        // On n'impose plus un élève minimum : on peut avoir zéro élève
+        for (let div of studentDivs) {
+            const name = div.querySelector('.student-name').value.trim();
+            if (name === "") continue; // on ignore les lignes vides
+            const classe = div.querySelector('.student-class').value.trim();
+            students.push({ nom: name, classe: classe });
+        }
+        // Pas d'erreur si students est vide : c'est un paiement sans nouvelle inscription
+        
+        const montantVerse = Math.floor(parseFloat(document.getElementById('montantVerse').value)) || 0;
+        // Calcul du solde antérieur
+        const soldePrec = (() => {
+            const solde = getParentSolde(parentNom, telephone);
+            return Math.max(0, solde.soldeRestant);
+        })();
+        const totalNouveaux = students.length * cotisationParEleve;
+        const totalDueGlobal = soldePrec + totalNouveaux;
+        const resteAPayer = Math.max(0, totalDueGlobal - montantVerse);
+        
+        let date = document.getElementById('datePaiement').value;
+        if (!date) date = new Date().toISOString().slice(0, 10);
+        const observations = document.getElementById('observations').value.trim();
+        
+        return {
+            id: Date.now(),
+            parentNom,
+            telephone,
+            adresse,
+            students, // peut être vide
+            montantVerse,
+            resteAPayer,
+            date: date + " 00:00:00",
+            observations,
+            soldeAntérieur: soldePrec
+        };
+    }
+
+    // Fonction pour afficher un récapitulatif imprimable
+    function afficherRecapEtImprimer(payment, ancienSolde, nouveauSolde) {
+        const elevesHtml = payment.students.length === 0 
+            ? "<li>Aucun nouvel élève (paiement sur dette existante)</li>"
+            : payment.students.map(s => `<li>${escapeHtml(s.nom)} (${escapeHtml(s.classe) || 'Classe non précisée'})</li>`).join('');
+        
+        const recapContent = `
+            <h2 style="text-align:center;">${nomAssociation}</h2>
+            <h3 style="text-align:center;">REÇU DE COTISATION</h3>
+            <p><strong>Parent :</strong> ${escapeHtml(payment.parentNom)}</p>
+            <p><strong>Téléphone :</strong> ${escapeHtml(payment.telephone)}</p>
+            <p><strong>Date :</strong> ${payment.date.split(' ')[0]}</p>
+            <hr>
+            <h4>Détail :</h4>
+            <ul>${elevesHtml}</ul>
+            <p><strong>Cotisation par élève :</strong> ${cotisationParEleve.toLocaleString()} FCFA</p>
+            ${payment.students.length > 0 ? `<p><strong>Total dû pour ces nouveaux élèves :</strong> ${(payment.students.length * cotisationParEleve).toLocaleString()} FCFA</p>` : ''}
+            <p><strong>Solde antérieur :</strong> ${ancienSolde.toLocaleString()} FCFA</p>
+            <p><strong>Montant versé aujourd'hui :</strong> ${payment.montantVerse.toLocaleString()} FCFA</p>
+            <p><strong>Nouveau solde restant :</strong> ${nouveauSolde.toLocaleString()} FCFA</p>
+            <hr>
+            <p><em>Association des Parents d'Élèves – ${escapeHtml(nomAssociation)}</em></p>
+            <p>Signature : ____________________</p>
+        `;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Reçu de cotisation - ${payment.parentNom}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 2cm; }
+                    h2, h3 { text-align: center; }
+                    ul { margin: 10px 0; }
+                    hr { margin: 15px 0; }
+                    @media print {
+                        body { margin: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${recapContent}
+                <div class="no-print" style="text-align:center; margin-top:30px;">
+                    <button onclick="window.print();">🖨️ Imprimer</button>
+                    <button onclick="window.close();">❌ Fermer</button>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    function addPayment(payment) {
+        const payments = getPayments();
+        payments.unshift(payment);
+        savePayments(payments);
+        displayRecentPayments();
+        return payment;
+    }
+
+    function displayRecentPayments() {
+        const payments = getPayments();
+        const recentDiv = document.getElementById('recentPaymentsList');
+        if (payments.length === 0) {
+            recentDiv.innerHTML = '<p class="info-badge">Aucune cotisation enregistrée</p>';
+            return;
+        }
+        let html = '<ul style="list-style:none; padding:0;">';
+        payments.slice(0, 5).forEach(p => {
+            const elevesStr = (p.students || []).map(s => s.nom).join(', ') || 'Aucun élève (paiement dette)';
+            html += `<li style="border-bottom:1px solid #e2e8f0; padding: 8px 0;">
+                        <strong>${escapeHtml(p.parentNom)}</strong> - ${p.montantVerse.toLocaleString()} FCFA<br>
+                        <small>${elevesStr} | ${p.date ? p.date.split(' ')[0] : ''}</small>
+                     </li>`;
+        });
+        html += '</ul>';
+        recentDiv.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+    }
+
+    // Soumission du formulaire
+    document.getElementById('cotisationForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        try {
+            const payment = collectFormData();
+            const ancienSolde = payment.soldeAntérieur;
+            const nouveauSolde = payment.resteAPayer;
+            addPayment(payment);
+            alert(`✅ Cotisation enregistrée pour ${payment.parentNom} !\n\nMontant versé : ${payment.montantVerse.toLocaleString()} FCFA\nAncien solde : ${ancienSolde.toLocaleString()} FCFA\nNouveau solde restant : ${nouveauSolde.toLocaleString()} FCFA\n\nUn reçu va s'ouvrir pour impression.`);
+            afficherRecapEtImprimer(payment, ancienSolde, nouveauSolde);
+            
+            // Réinitialiser le formulaire (sauf date)
+            document.getElementById('cotisationForm').reset();
+            studentsContainer.innerHTML = `
+                <div class="student-entry" data-index="0">
+                    <div class="student-header">
+                        <span>Élève 1</span>
+                        <button type="button" class="remove-student btn-outline" style="background:#fee2e2;">Supprimer</button>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="Nom complet" class="student-name">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="Classe (ex: 3ème)" class="student-class">
+                    </div>
+                </div>
+            `;
+            montantVerseInput.value = '0';
+            document.getElementById('datePaiement').value = new Date().toISOString().slice(0,10);
+            document.getElementById('observations').value = '';
+            document.getElementById('soldeAntérieurDiv').style.display = 'none';
+            bindStudentChanges();
+            calculerResteAPayer();
+        } catch(err) {
+            alert("Erreur : " + err.message);
+        }
+    });
+
+    document.getElementById('resetFormBtn').addEventListener('click', () => {
+        document.getElementById('cotisationForm').reset();
+        studentsContainer.innerHTML = `
+            <div class="student-entry" data-index="0">
+                <div class="student-header">
+                    <span>Élève 1</span>
+                    <button type="button" class="remove-student btn-outline" style="background:#fee2e2;">Supprimer</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Nom complet" class="student-name">
+                </div>
+                <div class="form-group">
+                    <input type="text" placeholder="Classe (ex: 3ème)" class="student-class">
+                </div>
+            </div>
+        `;
+        montantVerseInput.value = '0';
+        document.getElementById('datePaiement').value = new Date().toISOString().slice(0,10);
+        document.getElementById('soldeAntérieurDiv').style.display = 'none';
+        bindStudentChanges();
+        calculerResteAPayer();
+    });
+
+    document.getElementById('voirBilanBtn').addEventListener('click', () => {
+        window.location.href = 'bilan-financier.html';
+    });
+
+    // Initialisation
+    chargerParametres();
+    displayRecentPayments();
+    document.getElementById('datePaiement').value = new Date().toISOString().slice(0,10);
+    calculerResteAPayer();
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.error("SW error:", err));
+        });
+    }
+</script>
+</body>
+</html>
