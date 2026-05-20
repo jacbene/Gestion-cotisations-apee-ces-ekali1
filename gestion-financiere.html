@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>APEE CES EKALI 1 - Gestion financière</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* --- Le style reste strictement identique à l'original --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        body {
+            background: #eef2f5;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .return-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #2e7d32;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 32px;
+            margin-bottom: 28px;
+        }
+        .header h1 { font-size: 1.7rem; }
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4a627a;
+            cursor: pointer;
+            border-radius: 48px 48px 0 0;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #2e7d32;
+            border-bottom: 3px solid #2e7d32;
+        }
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-left: 5px solid #2e7d32;
+            padding-left: 16px;
+            margin-bottom: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            color: #2c5a2e;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            background: white;
+        }
+        button {
+            background: #2e7d32;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 48px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover { background: #1b5e20; transform: translateY(-2px); }
+        .btn-secondary { background: #2c3e66; }
+        .btn-outline {
+            background: #f4f7fb;
+            color: #1e4620;
+            border: 1px solid #cbdde6;
+        }
+        .btn-danger {
+            background: #dc2626;
+        }
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.8rem;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #eef2f7;
+            font-weight: 600;
+        }
+        .badge {
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8fafd;
+            border-radius: 20px;
+            padding: 1rem;
+            flex: 1;
+            text-align: center;
+            border: 1px solid #e0e9f0;
+        }
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e4b2e;
+        }
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 40px;
+            height: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #2e7d32;
+            width: 0%;
+            height: 100%;
+            color: white;
+            font-size: 0.7rem;
+            line-height: 20px;
+            padding-left: 8px;
+        }
+        hr { margin: 20px 0; }
+        .flex-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        .list-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        @media (max-width: 700px) {
+            body { padding: 16px; }
+            .tab-btn { padding: 8px 16px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="index.html" class="return-link">← Retour à l'accueil</a>
+
+    <div class="header">
+        <h1>📋 Gestion financière · Budget prévisionnel 2025/2026</h1>
+        <p>Bons de commande, ordres de paiement, remboursements, suivi des dépenses et recettes</p>
+    </div>
+
+    <!-- Onglets -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-bon">🧾 Bons de commande</button>
+        <button class="tab-btn" data-tab="tab-op">💸 Ordres de paiement</button>
+        <button class="tab-btn" data-tab="tab-remb">↩️ Fiches de remboursement</button>
+        <button class="tab-btn" data-tab="tab-recette">💰 Recettes</button>
+        <button class="tab-btn" data-tab="tab-comparatif">📊 Comparatif & récapitulatif</button>
+    </div>
+
+    <!-- ==================== TAB 1 : BON DE COMMANDE ==================== -->
+    <div id="tab-bon" class="tab-content active">
+        <div class="card-title">📝 Bon de commande</div>
+        <div class="flex-buttons">
+            <button id="printBlankBon" class="btn-outline">🖨️ Imprimer formulaire vierge</button>
+        </div>
+        <form id="bonForm">
+            <div class="grid-2col">
+                <div class="form-group"><label>N° bon</label><input type="text" id="bonNum" placeholder="Auto" readonly style="background:#f0f2f5;"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="bonDate" required></div>
+                <div class="form-group"><label>Fournisseur</label><input type="text" id="bonFournisseur" required></div>
+                <div class="form-group"><label>Objet / Description</label><input type="text" id="bonObjet" required></div>
+                <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="bonMontant" step="1" required></div>
+                <div class="form-group"><label>Ligne budgétaire</label>
+                    <select id="bonLigne">
+                        <option value="Fonctionnement">Fonctionnement</option>
+                        <option value="Projets éducatifs">Projets éducatifs</option>
+                        <option value="Événements">Événements</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Cantine scolaire">Cantine scolaire</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Demandeur</label><input type="text" id="bonDemandeur" required></div>
+                <div class="form-group"><label>Approbateur</label><input type="text" id="bonApprobateur" value="Président" required></div>
+            </div>
+            <div class="flex-buttons">
+                <button type="submit">Enregistrer le bon</button>
+                <button type="button" id="resetBonBtn" class="btn-outline">Réinitialiser</button>
+            </div>
+        </form>
+        <hr>
+        <h3>📋 Liste des bons de commande</h3>
+        <div style="overflow-x: auto;">
+            <table id="bonTable">
+                <thead><tr><th>N°</th><th>Date</th><th>Fournisseur</th><th>Objet</th><th>Montant</th><th>Ligne</th><th>Demandeur</th><th>Approbateur</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="list-actions">
+            <button id="exportBonsBtn" class="btn-secondary">📎 Exporter CSV (Bons)</button>
+            <button id="importBonsBtn" class="btn-secondary">📂 Importer CSV (Bons)</button>
+            <button id="printBonsListBtn" class="btn-secondary">🖨️ Imprimer la liste</button>
+            <input type="file" id="importBonsFile" accept=".csv" style="display:none;">
+        </div>
+    </div>
+
+    <!-- ==================== TAB 2 : ORDRE DE PAIEMENT ==================== -->
+    <div id="tab-op" class="tab-content">
+        <div class="card-title">💸 Ordre de paiement</div>
+        <div class="flex-buttons">
+            <button id="printBlankOp" class="btn-outline">🖨️ Imprimer formulaire vierge</button>
+        </div>
+        <form id="opForm">
+            <div class="grid-2col">
+                <div class="form-group"><label>N° ordre</label><input type="text" id="opNum" placeholder="Auto" readonly style="background:#f0f2f5;"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="opDate" required></div>
+                <div class="form-group"><label>Bénéficiaire</label><input type="text" id="opBeneficiaire" required></div>
+                <div class="form-group"><label>Motif</label><input type="text" id="opMotif" required></div>
+                <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="opMontant" step="1" required></div>
+                <div class="form-group"><label>Ligne budgétaire</label>
+                    <select id="opLigne">
+                        <option value="Fonctionnement">Fonctionnement</option>
+                        <option value="Projets éducatifs">Projets éducatifs</option>
+                        <option value="Événements">Événements</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Cantine scolaire">Cantine scolaire</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Ordonnateur</label><input type="text" id="opOrdonnateur" value="Trésorier" required></div>
+                <div class="form-group"><label>Référence bon de commande (optionnel)</label><input type="text" id="opRefBon" placeholder="N° bon associé"></div>
+            </div>
+            <div class="flex-buttons">
+                <button type="submit">Enregistrer l'ordre</button>
+                <button type="button" id="resetOpBtn" class="btn-outline">Réinitialiser</button>
+            </div>
+        </form>
+        <hr>
+        <h3>📋 Liste des ordres de paiement</h3>
+        <div style="overflow-x: auto;">
+            <table id="opTable">
+                <thead><tr><th>N°</th><th>Date</th><th>Bénéficiaire</th><th>Motif</th><th>Montant</th><th>Ligne</th><th>Ordonnateur</th><th>Réf Bon</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="list-actions">
+            <button id="exportOpsBtn" class="btn-secondary">📎 Exporter CSV (Ordres)</button>
+            <button id="importOpsBtn" class="btn-secondary">📂 Importer CSV (Ordres)</button>
+            <button id="printOpsListBtn" class="btn-secondary">🖨️ Imprimer la liste</button>
+            <input type="file" id="importOpsFile" accept=".csv" style="display:none;">
+        </div>
+    </div>
+
+    <!-- ==================== TAB 3 : FICHE DE REMBOURSEMENT ==================== -->
+    <div id="tab-remb" class="tab-content">
+        <div class="card-title">↩️ Fiche de remboursement (frais avancés)</div>
+        <div class="flex-buttons">
+            <button id="printBlankRemb" class="btn-outline">🖨️ Imprimer formulaire vierge</button>
+        </div>
+        <form id="rembForm">
+            <div class="grid-2col">
+                <div class="form-group"><label>N° fiche</label><input type="text" id="rembNum" placeholder="Auto" readonly style="background:#f0f2f5;"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="rembDate" required></div>
+                <div class="form-group"><label>Demandeur (agent/parent)</label><input type="text" id="rembDemandeur" required></div>
+                <div class="form-group"><label>Objet du remboursement</label><input type="text" id="rembObjet" required></div>
+                <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="rembMontant" step="1" required></div>
+                <div class="form-group"><label>Ligne budgétaire</label>
+                    <select id="rembLigne">
+                        <option value="Fonctionnement">Fonctionnement</option>
+                        <option value="Projets éducatifs">Projets éducatifs</option>
+                        <option value="Événements">Événements</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Cantine scolaire">Cantine scolaire</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Pièce justificative</label><input type="text" id="rembJustif" placeholder="Facture n°..."></div>
+                <div class="form-group"><label>Approbateur</label><input type="text" id="rembApprobateur" value="Président" required></div>
+            </div>
+            <div class="flex-buttons">
+                <button type="submit">Enregistrer la fiche</button>
+                <button type="button" id="resetRembBtn" class="btn-outline">Réinitialiser</button>
+            </div>
+        </form>
+        <hr>
+        <h3>📋 Fiches de remboursement</h3>
+        <div style="overflow-x: auto;">
+            <table id="rembTable">
+                <thead><tr><th>N°</th><th>Date</th><th>Demandeur</th><th>Objet</th><th>Montant</th><th>Ligne</th><th>Justificatif</th><th>Approbateur</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="list-actions">
+            <button id="exportRembBtn" class="btn-secondary">📎 Exporter CSV (Remboursements)</button>
+            <button id="importRembBtn" class="btn-secondary">📂 Importer CSV (Remboursements)</button>
+            <button id="printRembListBtn" class="btn-secondary">🖨️ Imprimer la liste</button>
+            <input type="file" id="importRembFile" accept=".csv" style="display:none;">
+        </div>
+    </div>
+
+    <!-- ==================== TAB 4 : RECETTES ==================== -->
+    <div id="tab-recette" class="tab-content">
+        <div class="card-title">💰 Enregistrement des recettes (cotisations, subventions, dons)</div>
+        <div class="flex-buttons">
+            <button id="printBlankRecette" class="btn-outline">🖨️ Imprimer formulaire vierge</button>
+        </div>
+        <form id="recetteForm">
+            <div class="grid-2col">
+                <div class="form-group"><label>N° reçu</label><input type="text" id="recetteNum" placeholder="Auto" readonly style="background:#f0f2f5;"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="recetteDate" required></div>
+                <div class="form-group"><label>Nature de la recette</label>
+                    <select id="recetteNature">
+                        <option value="Cotisation (12 500 FCFA/élève)">Cotisation (12 500 FCFA/élève)</option>
+                        <option value="Membre d'honneur">Membre d'honneur</option>
+                        <option value="Subvention Conseil Régional">Subvention Conseil Régional</option>
+                        <option value="Subvention Mairie de Mfou">Subvention Mairie de Mfou</option>
+                        <option value="Don ponctuel">Don ponctuel</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Source / Payeur</label><input type="text" id="recetteSource" required></div>
+                <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="recetteMontant" step="1" required></div>
+                <div class="form-group"><label>Référence / observation</label><input type="text" id="recetteObs"></div>
+            </div>
+            <div class="flex-buttons">
+                <button type="submit">Enregistrer la recette</button>
+                <button type="button" id="resetRecetteBtn" class="btn-outline">Réinitialiser</button>
+            </div>
+        </form>
+        <hr>
+        <h3>📋 Historique des recettes</h3>
+        <div style="overflow-x: auto;">
+            <table id="recetteTable">
+                <thead><tr><th>N°</th><th>Date</th><th>Nature</th><th>Source</th><th>Montant</th><th>Obs</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="list-actions">
+            <button id="exportRecettesBtn" class="btn-secondary">📎 Exporter CSV (Recettes)</button>
+            <button id="importRecettesBtn" class="btn-secondary">📂 Importer CSV (Recettes)</button>
+            <button id="printRecettesListBtn" class="btn-secondary">🖨️ Imprimer la liste</button>
+            <input type="file" id="importRecettesFile" accept=".csv" style="display:none;">
+        </div>
+    </div>
+
+    <!-- ==================== TAB 5 : COMPARATIF & RÉCAPITULATIF ==================== -->
+    <div id="tab-comparatif" class="tab-content">
+        <div class="card-title">📊 Comparatif dépenses / recettes & suivi budgétaire</div>
+        <div class="stats" id="globalStats"></div>
+        <h3>📈 État comparatif par ligne budgétaire</h3>
+        <div style="overflow-x: auto;">
+            <table id="comparatifLignesTable">
+                <thead><tr><th>Ligne budgétaire</th><th>Budget prévisionnel (FCFA)</th><th>Dépenses réalisées (FCFA)</th><th>Taux consommation</th><th>Recettes affectées (option)</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <h3 style="margin-top: 25px;">📋 Détail complet des opérations (dépenses et recettes)</h3>
+        <div class="flex-buttons">
+            <button id="exportComparatifCSV" class="btn-secondary">📎 Exporter CSV comparatif</button>
+            <button id="resetAllFinancialData" class="btn-danger">⚠️ Réinitialiser toutes les données financières</button>
+        </div>
+        <div style="overflow-x: auto;">
+            <table id="allTransactionsTable">
+                <thead><tr><th>Type</th><th>N°</th><th>Date</th><th>Bénéficiaire/Source</th><th>Objet/Nature</th><th>Montant</th><th>Ligne budgétaire</th><th>Référence</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== STORAGE KEYS ====================
+    const STORAGE_KEYS = {
+        BONS: 'apee_bons_commande',
+        ORDRES: 'apee_ordres_paiement',
+        REMBOURSEMENTS: 'apee_remboursements',
+        RECETTES: 'apee_recettes'
+    };
+    const SETTINGS_KEY = 'apee_app_settings';  // clé utilisée dans parametres.html
+    
+    const BUDGET_PREV = {
+        "Fonctionnement": 150000,
+        "Projets éducatifs": 200000,
+        "Événements": 200000,
+        "Maintenance": 700000,
+        "Cantine scolaire": 1500000
+    };
+    const TOTAL_RECETTES_PREV = 2750000;
+    
+    let bons = [];
+    let ordres = [];
+    let remboursements = [];
+    let recettes = [];
+    
+    // ----- Récupération des paramètres (nom association, année scolaire) -----
+    function getAssociationSettings() {
+        const defaults = {
+            nomAssociation: "APEE CES D'EKALI 1 - MFOU",
+            anneeScolaire: "2025/2026"
+        };
+        const stored = localStorage.getItem(SETTINGS_KEY);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                return {
+                    nomAssociation: parsed.nomAssociation || defaults.nomAssociation,
+                    anneeScolaire: parsed.anneeScolaire || defaults.anneeScolaire
+                };
+            } catch(e) { return defaults; }
+        }
+        return defaults;
+    }
+    
+    // ==================== IMPRESSION DOCUMENTS (avec en-tête association) ====================
+    function printDocument(type, data, isBlank = false) {
+        const settings = getAssociationSettings();
+        const header = `<div style="text-align:center; margin-bottom:20px;">
+                            <h2 style="color:#1e4b2e;">${settings.nomAssociation}</h2>
+                            <p>Année scolaire ${settings.anneeScolaire}</p>
+                            <hr>
+                        </div>`;
+        
+        let title = '', content = '';
+        const multiLineStyle = '<div style="min-height:180px; border:1px dashed #aaa; padding:8px; margin:4px 0;"><span style="font-size:11px; color:#666;">(Espace réservé à la description détaillée - jusqu\'à 10 lignes)</span><br><br>______________________________<br>______________________________<br>______________________________<br>______________________________<br>______________________________<br>______________________________<br>______________________________<br>______________________________<br>______________________________<br>______________________________</div>';
+        
+        if (type === 'bon') {
+            title = `BON DE COMMANDE ${isBlank ? '(FORMULAIRE VIERGE)' : 'N° '+data.num}`;
+            content = `
+                <h2>${title}</h2>
+                <table border="1" cellpadding="8" style="border-collapse:collapse; width:100%;">
+                    <tr><th>Date</th><td>${isBlank ? '___________ / ___________ / _________ ' : data.date}</td><th>Fournisseur</th><td>${isBlank ? '_____________________________' : escapeHtml(data.fournisseur)}</td></tr>
+                    <tr><th>Objet / Description</th><td colspan="3">${isBlank ? multiLineStyle : escapeHtml(data.objet)}</td></tr>
+                    <tr><th>Montant</th><td>${isBlank ? '_____________ FCFA' : data.montant.toLocaleString()+' FCFA'}</td><th>Ligne budgétaire</th><td>${isBlank ? '_____________' : data.ligne}</td></tr>
+                    <tr><th>Demandeur</th><td>${isBlank ? '________________________' : escapeHtml(data.demandeur)}</td><th>Approbateur</th><td>${isBlank ? '________________________' : escapeHtml(data.approbateur)}</td></tr>
+                </table>
+                <p style="margin-top:40px;">Fait à MFOU, le ${isBlank ? '___________' : new Date().toLocaleDateString('fr-FR')}</p>
+                <p>Signature du demandeur : _______________________________</p>
+                <p>Signature de l'approbateur : ___________________________</p>
+            `;
+        } else if (type === 'op') {
+            title = `ORDRE DE PAIEMENT ${isBlank ? '(FORMULAIRE VIERGE)' : 'N° '+data.num}`;
+            content = `
+                <h2>${title}</h2>
+                <table border="1" cellpadding="8" style="border-collapse:collapse; width:100%;">
+                    <tr><th>Date</th><td>${isBlank ? '___________ / ___________ / _________ ' : data.date}</td><th>Bénéficiaire</th><td>${isBlank ? '_____________________________' : escapeHtml(data.beneficiaire)}</td></tr>
+                    <tr><th>Motif détaillé</th><td colspan="3">${isBlank ? multiLineStyle : escapeHtml(data.motif)}</td></tr>
+                    <tr><th>Montant</th><td>${isBlank ? '_____________ FCFA' : data.montant.toLocaleString()+' FCFA'}</td><th>Ligne budgétaire</th><td>${isBlank ? '_____________' : data.ligne}</td></tr>
+                    <tr><th>Ordonnateur</th><td>${isBlank ? '________________________' : escapeHtml(data.ordonnateur)}</td><th>Réf. bon de commande</th><td>${isBlank ? '_____________' : (data.refBon || '-')}</td></tr>
+                </table>
+                <p style="margin-top:40px;">Fait à MFOU, le ${isBlank ? '___________' : new Date().toLocaleDateString('fr-FR')}</p>
+                <p>Signature de l'ordonnateur : ___________________________</p>
+            `;
+        } else if (type === 'remb') {
+            title = `FICHE DE REMBOURSEMENT ${isBlank ? '(FORMULAIRE VIERGE)' : 'N° '+data.num}`;
+            content = `
+                <h2>${title}</h2>
+                <table border="1" cellpadding="8" style="border-collapse:collapse; width:100%;">
+                    <tr><th>Date</th><td>${isBlank ? '___________ / ___________ / _________ ' : data.date}</td><th>Demandeur</th><td>${isBlank ? '_____________________________' : escapeHtml(data.demandeur)}</td></tr>
+                    <tr><th>Objet du remboursement</th><td colspan="3">${isBlank ? multiLineStyle : escapeHtml(data.objet)}</td></tr>
+                    <tr><th>Montant</th><td>${isBlank ? '_____________ FCFA' : data.montant.toLocaleString()+' FCFA'}</td><th>Ligne budgétaire</th><td>${isBlank ? '_____________' : data.ligne}</td></tr>
+                    <tr><th>Pièce justificative</th><td colspan="3">${isBlank ? '________________________' : escapeHtml(data.justificatif || 'Aucune')}</td></tr>
+                    <tr><th>Approbateur</th><td colspan="3">${isBlank ? '________________________' : escapeHtml(data.approbateur)}</td></tr>
+                </table>
+                <p style="margin-top:40px;">Fait à MFOU, le ${isBlank ? '___________' : new Date().toLocaleDateString('fr-FR')}</p>
+                <p>Signature du demandeur : _______________________________</p>
+                <p>Signature de l'approbateur : ___________________________</p>
+            `;
+        } else if (type === 'recette') {
+            title = `REÇU DE RECETTE ${isBlank ? '(FORMULAIRE VIERGE)' : 'N° '+data.num}`;
+            content = `
+                <h2>${title}</h2>
+                <table border="1" cellpadding="8" style="border-collapse:collapse; width:100%;">
+                    <tr><th>Date</th><td>${isBlank ? '___________ / ___________ / _________ ' : data.date}</td><th>Nature</th><td>${isBlank ? '_____________________________' : escapeHtml(data.nature)}</td></tr>
+                    <tr><th>Source / Payeur</th><td colspan="3">${isBlank ? '_____________________________' : escapeHtml(data.source)}</td></tr>
+                    <tr><th>Montant</th><td>${isBlank ? '_____________ FCFA' : data.montant.toLocaleString()+' FCFA'}</td><th>Observation</th><td>${isBlank ? '________________________' : escapeHtml(data.obs || '-')}</td></tr>
+                </table>
+                <p style="margin-top:40px;">Fait à MFOU, le ${isBlank ? '___________' : new Date().toLocaleDateString('fr-FR')}</p>
+                <p>Signature du receveur : _______________________________</p>
+                <p>Cachet de l'association : _____________________________</p>
+            `;
+        }
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>${title} - ${settings.nomAssociation}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 2cm; }
+                    h2 { text-align: center; color: #2e7d32; }
+                    table { margin-top: 20px; width:100%; border-collapse:collapse; }
+                    th, td { border:1px solid #000; padding: 8px; vertical-align:top; }
+                    th { background: #f0f0f0; text-align: left; }
+                    @media print {
+                        body { margin: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${header}
+                ${content}
+                <div class="no-print" style="text-align:center; margin-top:30px;">
+                    <button onclick="window.print();">🖨️ Imprimer</button>
+                    <button onclick="window.close();">❌ Fermer</button>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+    
+    // Impression d'une liste (tableau) avec en-tête association
+    function printList(title, headers, rowsData) {
+        const settings = getAssociationSettings();
+        const header = `<div style="text-align:center; margin-bottom:20px;">
+                            <h2 style="color:#1e4b2e;">${settings.nomAssociation}</h2>
+                            <p>Année scolaire ${settings.anneeScolaire}</p>
+                            <hr>
+                        </div>`;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head><title>${title} - ${settings.nomAssociation}</title>
+            <style>
+                body { font-family: Arial; margin: 1cm; }
+                h2 { text-align: center; color: #2e7d32; }
+                table { width:100%; border-collapse: collapse; margin-top:20px; }
+                th, td { border:1px solid #999; padding: 6px; text-align:left; }
+                th { background:#f0f0f0; }
+                @media print { .no-print { display:none; } }
+            </style>
+            </head>
+            <body>
+            ${header}
+            <h2>${title}</h2>
+            <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+            ${rowsData.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(String(cell))}</td>`).join('')}</tr>`).join('')}
+            </tbody></table>
+            <div class="no-print" style="text-align:center; margin-top:20px;"><button onclick="window.print();">🖨️ Imprimer</button> <button onclick="window.close();">Fermer</button></div>
+            </body></html>
+        `);
+        printWindow.document.close();
+    }
+    
+    // Le reste du code (chargement, rendu, événements) reste strictement identique à l'original,
+    // à l'exception de l'adaptation des appels à printList (déjà corrigée ci-dessus).
+    // On conserve toutes les fonctions existantes (loadAllData, saveAllData, generateId, escapeHtml,
+    // attachPrintEvents, attachDeleteEvents, exportListToCSV, importCSVToCollection, etc.)
+    
+    // ========== FONCTIONS EXISTANTES (non modifiées) ==========
+    function loadAllData() {
+        bons = JSON.parse(localStorage.getItem(STORAGE_KEYS.BONS) || '[]');
+        ordres = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDRES) || '[]');
+        remboursements = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMBOURSEMENTS) || '[]');
+        recettes = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECETTES) || '[]');
+    }
+    function saveAllData() {
+        localStorage.setItem(STORAGE_KEYS.BONS, JSON.stringify(bons));
+        localStorage.setItem(STORAGE_KEYS.ORDRES, JSON.stringify(ordres));
+        localStorage.setItem(STORAGE_KEYS.REMBOURSEMENTS, JSON.stringify(remboursements));
+        localStorage.setItem(STORAGE_KEYS.RECETTES, JSON.stringify(recettes));
+    }
+    function generateId(prefix) { return prefix + '-' + Date.now() + '-' + Math.floor(Math.random()*1000); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    
+    function attachPrintEvents(type, items) {
+        document.querySelectorAll(`.print-${type}`).forEach(btn => {
+            btn.removeEventListener('click', btn._handler);
+            const handler = () => {
+                const id = btn.dataset.id;
+                let data;
+                if (type === 'bon') data = bons.find(b => b.id == id);
+                else if (type === 'op') data = ordres.find(o => o.id == id);
+                else if (type === 'remb') data = remboursements.find(r => r.id == id);
+                else if (type === 'recette') data = recettes.find(r => r.id == id);
+                if (data) printDocument(type, data, false);
+            };
+            btn.addEventListener('click', handler);
+            btn._handler = handler;
+        });
+    }
+    function attachDeleteEvents(collection, selector) {
+        document.querySelectorAll(selector).forEach(btn => {
+            btn.removeEventListener('click', btn._delHandler);
+            const handler = () => {
+                const id = btn.dataset.id;
+                if(confirm('Supprimer définitivement ?')) {
+                    if(collection === 'bons') bons = bons.filter(b => b.id != id);
+                    if(collection === 'ordres') ordres = ordres.filter(o => o.id != id);
+                    if(collection === 'remboursements') remboursements = remboursements.filter(r => r.id != id);
+                    if(collection === 'recettes') recettes = recettes.filter(r => r.id != id);
+                    saveAllData();
+                    refreshAllTables();
+                    updateComparatif();
+                }
+            };
+            btn.addEventListener('click', handler);
+            btn._delHandler = handler;
+        });
+    }
+    
+    function exportListToCSV(data, fields, filename) {
+        let csv = fields.join(',') + '\n';
+        data.forEach(item => {
+            const row = fields.map(f => {
+                let val = item[f] !== undefined ? item[f] : '';
+                if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) val = '"' + val.replace(/"/g, '""') + '"';
+                return val;
+            }).join(',');
+            csv += row + '\n';
+        });
+        const blob = new Blob([csv], {type:"text/csv"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+    
+    function importCSVToCollection(file, collectionName, mapping, prefixId, targetArray, saveCallback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split(/\r?\n/);
+            if(lines.length < 2) { alert("Fichier invalide"); return; }
+            const headers = lines[0].split(',').map(h => h.trim());
+            const newItems = [];
+            for(let i=1; i<lines.length; i++) {
+                if(!lines[i].trim()) continue;
+                const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                let obj = {};
+                headers.forEach((h, idx) => { if(mapping[h]) obj[mapping[h]] = values[idx] || ''; });
+                if(obj.num && obj.montant) {
+                    obj.montant = parseFloat(obj.montant) || 0;
+                    obj.id = generateId(prefixId);
+                    if(!obj.date) obj.date = '';
+                    newItems.push(obj);
+                }
+            }
+            if(newItems.length > 0) {
+                targetArray.push(...newItems);
+                saveCallback();
+                alert(`${newItems.length} enregistrements importés avec succès.`);
+                refreshAllTables();
+                updateComparatif();
+            } else { alert("Aucune donnée valide à importer."); }
+        };
+        reader.readAsText(file);
+    }
+    
+    // Rendu tableaux
+    function renderBons() {
+        const tbody = document.querySelector('#bonTable tbody');
+        tbody.innerHTML = bons.map(b => `<tr>
+            <td>${b.num}</td><td>${b.date}</td><td>${escapeHtml(b.fournisseur)}</td><td>${escapeHtml(b.objet)}</td>
+            <td>${b.montant.toLocaleString()} FCFA</td><td>${b.ligne}</td><td>${escapeHtml(b.demandeur)}</td><td>${escapeHtml(b.approbateur)}</td>
+            <td><button class="btn-outline print-bon" data-id="${b.id}">🖨️</button> <button class="btn-outline delete-bon" data-id="${b.id}">🗑️</button></td>
+        </tr>`).join('');
+        attachPrintEvents('bon', bons);
+        attachDeleteEvents('bons', '.delete-bon');
+    }
+    function renderOrdres() {
+        const tbody = document.querySelector('#opTable tbody');
+        tbody.innerHTML = ordres.map(o => `<tr>
+            <td>${o.num}</td><td>${o.date}</td><td>${escapeHtml(o.beneficiaire)}</td><td>${escapeHtml(o.motif)}</td>
+            <td>${o.montant.toLocaleString()} FCFA</td><td>${o.ligne}</td><td>${escapeHtml(o.ordonnateur)}</td><td>${o.refBon || '-'}</td>
+            <td><button class="btn-outline print-op" data-id="${o.id}">🖨️</button> <button class="btn-outline delete-op" data-id="${o.id}">🗑️</button></td>
+        </tr>`).join('');
+        attachPrintEvents('op', ordres);
+        attachDeleteEvents('ordres', '.delete-op');
+    }
+    function renderRemboursements() {
+        const tbody = document.querySelector('#rembTable tbody');
+        tbody.innerHTML = remboursements.map(r => `<tr>
+            <td>${r.num}</td><td>${r.date}</td><td>${escapeHtml(r.demandeur)}</td><td>${escapeHtml(r.objet)}</td>
+            <td>${r.montant.toLocaleString()} FCFA</td><td>${r.ligne}</td><td>${escapeHtml(r.justificatif || '-')}</td><td>${escapeHtml(r.approbateur)}</td>
+            <td><button class="btn-outline print-remb" data-id="${r.id}">🖨️</button> <button class="btn-outline delete-remb" data-id="${r.id}">🗑️</button></td>
+        </tr>`).join('');
+        attachPrintEvents('remb', remboursements);
+        attachDeleteEvents('remboursements', '.delete-remb');
+    }
+    function renderRecettes() {
+        const tbody = document.querySelector('#recetteTable tbody');
+        tbody.innerHTML = recettes.map(r => `<tr>
+            <td>${r.num}</td><td>${r.date}</td><td>${escapeHtml(r.nature)}</td><td>${escapeHtml(r.source)}</td>
+            <td>${r.montant.toLocaleString()} FCFA</td><td>${escapeHtml(r.obs || '-')}</td>
+            <td><button class="btn-outline print-recette" data-id="${r.id}">🖨️</button> <button class="btn-outline delete-recette" data-id="${r.id}">🗑️</button></td>
+        </tr>`).join('');
+        attachPrintEvents('recette', recettes);
+        attachDeleteEvents('recettes', '.delete-recette');
+    }
+    
+    function refreshAllTables() { renderBons(); renderOrdres(); renderRemboursements(); renderRecettes(); }
+    
+    function getDepensesParLigne() {
+        let depenses = { "Fonctionnement":0, "Projets éducatifs":0, "Événements":0, "Maintenance":0, "Cantine scolaire":0 };
+        [...bons, ...ordres, ...remboursements].forEach(d => { if(depenses.hasOwnProperty(d.ligne)) depenses[d.ligne] += d.montant; });
+        return depenses;
+    }
+    function getTotalRecettes() { return recettes.reduce((sum, r) => sum + r.montant, 0); }
+    
+    function updateComparatif() {
+        const depensesParLigne = getDepensesParLigne();
+        const totalDepenses = Object.values(depensesParLigne).reduce((a,b)=>a+b,0);
+        const totalRecettes = getTotalRecettes();
+        const solde = totalRecettes - totalDepenses;
+        document.getElementById('globalStats').innerHTML = `
+            <div class="stat-card"><div class="stat-number">${totalRecettes.toLocaleString()} FCFA</div><div>Total recettes</div></div>
+            <div class="stat-card"><div class="stat-number">${totalDepenses.toLocaleString()} FCFA</div><div>Total dépenses</div></div>
+            <div class="stat-card"><div class="stat-number">${solde.toLocaleString()} FCFA</div><div>Solde</div></div>
+            <div class="stat-card"><div class="stat-number">${TOTAL_RECETTES_PREV.toLocaleString()} FCFA</div><div>Objectif recettes prévu</div></div>`;
+        const tbody = document.querySelector('#comparatifLignesTable tbody');
+        let html = '';
+        for(let [ligne, budget] of Object.entries(BUDGET_PREV)) {
+            const depense = depensesParLigne[ligne] || 0;
+            const taux = budget > 0 ? ((depense / budget)*100).toFixed(1) : 0;
+            html += `<tr><td>${ligne}</td><td>${budget.toLocaleString()} FCFA</td><td>${depense.toLocaleString()} FCFA</td>
+                <td><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(taux,100)}%;">${taux}%</div></div></td><td>-</td></tr>`;
+        }
+        tbody.innerHTML = html;
+        const allTrans = [];
+        bons.forEach(b => allTrans.push({ type:'Bon', num:b.num, date:b.date, tiers:b.fournisseur, objet:b.objet, montant:b.montant, ligne:b.ligne, ref:'' }));
+        ordres.forEach(o => allTrans.push({ type:'Ordre', num:o.num, date:o.date, tiers:o.beneficiaire, objet:o.motif, montant:o.montant, ligne:o.ligne, ref:o.refBon || '' }));
+        remboursements.forEach(r => allTrans.push({ type:'Remboursement', num:r.num, date:r.date, tiers:r.demandeur, objet:r.objet, montant:r.montant, ligne:r.ligne, ref:r.justificatif || '' }));
+        recettes.forEach(r => allTrans.push({ type:'Recette', num:r.num, date:r.date, tiers:r.source, objet:r.nature, montant:r.montant, ligne:'Recette', ref:r.obs || '' }));
+        allTrans.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+        document.querySelector('#allTransactionsTable tbody').innerHTML = allTrans.map(t => `<tr>
+            <td>${t.type}</td><td>${t.num}</td><td>${t.date}</td><td>${escapeHtml(t.tiers)}</td>
+            <td>${escapeHtml(t.objet)}</td><td>${t.montant.toLocaleString()} FCFA</td>
+            <td>${t.ligne}</td><td>${escapeHtml(t.ref)}</td>
+        </tr>`).join('');
+    }
+    
+    // ========== ÉVÉNEMENTS DES FORMULAIRES (inchangés) ==========
+    document.getElementById('bonForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        bons.unshift({ id: generateId('bon'), num: generateId('BC'), date: document.getElementById('bonDate').value, fournisseur: document.getElementById('bonFournisseur').value, objet: document.getElementById('bonObjet').value, montant: parseFloat(document.getElementById('bonMontant').value), ligne: document.getElementById('bonLigne').value, demandeur: document.getElementById('bonDemandeur').value, approbateur: document.getElementById('bonApprobateur').value });
+        saveAllData(); refreshAllTables(); updateComparatif();
+        document.getElementById('bonForm').reset(); document.getElementById('bonDate').value = new Date().toISOString().slice(0,10);
+        alert('Bon enregistré');
+    });
+    document.getElementById('resetBonBtn').addEventListener('click', () => document.getElementById('bonForm').reset());
+    document.getElementById('opForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        ordres.unshift({ id: generateId('op'), num: generateId('OP'), date: document.getElementById('opDate').value, beneficiaire: document.getElementById('opBeneficiaire').value, motif: document.getElementById('opMotif').value, montant: parseFloat(document.getElementById('opMontant').value), ligne: document.getElementById('opLigne').value, ordonnateur: document.getElementById('opOrdonnateur').value, refBon: document.getElementById('opRefBon').value });
+        saveAllData(); refreshAllTables(); updateComparatif();
+        document.getElementById('opForm').reset(); document.getElementById('opDate').value = new Date().toISOString().slice(0,10);
+        alert('Ordre enregistré');
+    });
+    document.getElementById('resetOpBtn').addEventListener('click', () => document.getElementById('opForm').reset());
+    document.getElementById('rembForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        remboursements.unshift({ id: generateId('remb'), num: generateId('REM'), date: document.getElementById('rembDate').value, demandeur: document.getElementById('rembDemandeur').value, objet: document.getElementById('rembObjet').value, montant: parseFloat(document.getElementById('rembMontant').value), ligne: document.getElementById('rembLigne').value, justificatif: document.getElementById('rembJustif').value, approbateur: document.getElementById('rembApprobateur').value });
+        saveAllData(); refreshAllTables(); updateComparatif();
+        document.getElementById('rembForm').reset(); document.getElementById('rembDate').value = new Date().toISOString().slice(0,10);
+        alert('Fiche enregistrée');
+    });
+    document.getElementById('resetRembBtn').addEventListener('click', () => document.getElementById('rembForm').reset());
+    document.getElementById('recetteForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        recettes.unshift({ id: generateId('rec'), num: generateId('REC'), date: document.getElementById('recetteDate').value, nature: document.getElementById('recetteNature').value, source: document.getElementById('recetteSource').value, montant: parseFloat(document.getElementById('recetteMontant').value), obs: document.getElementById('recetteObs').value });
+        saveAllData(); refreshAllTables(); updateComparatif();
+        document.getElementById('recetteForm').reset(); document.getElementById('recetteDate').value = new Date().toISOString().slice(0,10);
+        alert('Recette enregistrée');
+    });
+    document.getElementById('resetRecetteBtn').addEventListener('click', () => document.getElementById('recetteForm').reset());
+    
+    // Impressions vierges
+    document.getElementById('printBlankBon').addEventListener('click', () => printDocument('bon', {}, true));
+    document.getElementById('printBlankOp').addEventListener('click', () => printDocument('op', {}, true));
+    document.getElementById('printBlankRemb').addEventListener('click', () => printDocument('remb', {}, true));
+    document.getElementById('printBlankRecette').addEventListener('click', () => printDocument('recette', {}, true));
+    
+    // Exports/Imports/Impression listes (avec printList modifié)
+    document.getElementById('exportBonsBtn').addEventListener('click', () => exportListToCSV(bons, ['num','date','fournisseur','objet','montant','ligne','demandeur','approbateur'], 'bons_commande.csv'));
+    document.getElementById('importBonsBtn').addEventListener('click', () => document.getElementById('importBonsFile').click());
+    document.getElementById('importBonsFile').addEventListener('change', (e) => {
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'bons', { 'Num':'num','Date':'date','Fournisseur':'fournisseur','Objet':'objet','Montant':'montant','Ligne':'ligne','Demandeur':'demandeur','Approbateur':'approbateur' }, 'BC', bons, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        e.target.value = '';
+    });
+    document.getElementById('printBonsListBtn').addEventListener('click', () => printList('Liste des Bons de commande', ['N°','Date','Fournisseur','Objet','Montant','Ligne','Demandeur','Approbateur'], bons.map(b => [b.num, b.date, b.fournisseur, b.objet, b.montant.toLocaleString()+' FCFA', b.ligne, b.demandeur, b.approbateur])));
+    
+    document.getElementById('exportOpsBtn').addEventListener('click', () => exportListToCSV(ordres, ['num','date','beneficiaire','motif','montant','ligne','ordonnateur','refBon'], 'ordres_paiement.csv'));
+    document.getElementById('importOpsBtn').addEventListener('click', () => document.getElementById('importOpsFile').click());
+    document.getElementById('importOpsFile').addEventListener('change', (e) => {
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'ordres', { 'Num':'num','Date':'date','Bénéficiaire':'beneficiaire','Motif':'motif','Montant':'montant','Ligne':'ligne','Ordonnateur':'ordonnateur','RefBon':'refBon' }, 'OP', ordres, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        e.target.value = '';
+    });
+    document.getElementById('printOpsListBtn').addEventListener('click', () => printList('Liste des Ordres de paiement', ['N°','Date','Bénéficiaire','Motif','Montant','Ligne','Ordonnateur','Réf Bon'], ordres.map(o => [o.num, o.date, o.beneficiaire, o.motif, o.montant.toLocaleString()+' FCFA', o.ligne, o.ordonnateur, o.refBon || '-'])));
+    
+    document.getElementById('exportRembBtn').addEventListener('click', () => exportListToCSV(remboursements, ['num','date','demandeur','objet','montant','ligne','justificatif','approbateur'], 'remboursements.csv'));
+    document.getElementById('importRembBtn').addEventListener('click', () => document.getElementById('importRembFile').click());
+    document.getElementById('importRembFile').addEventListener('change', (e) => {
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'remb', { 'Num':'num','Date':'date','Demandeur':'demandeur','Objet':'objet','Montant':'montant','Ligne':'ligne','Justificatif':'justificatif','Approbateur':'approbateur' }, 'REM', remboursements, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        e.target.value = '';
+    });
+    document.getElementById('printRembListBtn').addEventListener('click', () => printList('Liste des Remboursements', ['N°','Date','Demandeur','Objet','Montant','Ligne','Justificatif','Approbateur'], remboursements.map(r => [r.num, r.date, r.demandeur, r.objet, r.montant.toLocaleString()+' FCFA', r.ligne, r.justificatif || '-', r.approbateur])));
+    
+    document.getElementById('exportRecettesBtn').addEventListener('click', () => exportListToCSV(recettes, ['num','date','nature','source','montant','obs'], 'recettes.csv'));
+    document.getElementById('importRecettesBtn').addEventListener('click', () => document.getElementById('importRecettesFile').click());
+    document.getElementById('importRecettesFile').addEventListener('change', (e) => {
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'recettes', { 'Num':'num','Date':'date','Nature':'nature','Source':'source','Montant':'montant','Obs':'obs' }, 'REC', recettes, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        e.target.value = '';
+    });
+    document.getElementById('printRecettesListBtn').addEventListener('click', () => printList('Liste des Recettes', ['N°','Date','Nature','Source','Montant','Observation'], recettes.map(r => [r.num, r.date, r.nature, r.source, r.montant.toLocaleString()+' FCFA', r.obs || '-'])));
+    
+    document.getElementById('exportComparatifCSV').addEventListener('click', () => {
+        const depensesParLigne = getDepensesParLigne();
+        let csv = "Ligne budgétaire,Budget prévisionnel,Dépenses réalisées,Taux consommation\n";
+        for(let [ligne, budget] of Object.entries(BUDGET_PREV)) {
+            const depense = depensesParLigne[ligne] || 0;
+            const taux = budget>0 ? ((depense/budget)*100).toFixed(1) : 0;
+            csv += `${ligne},${budget},${depense},${taux}%\n`;
+        }
+        const blob = new Blob([csv], {type:"text/csv"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `comparatif_budget_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('resetAllFinancialData').addEventListener('click', () => {
+        if(confirm("⚠️ Réinitialiser TOUTES les données ?")) {
+            localStorage.removeItem(STORAGE_KEYS.BONS); localStorage.removeItem(STORAGE_KEYS.ORDRES); localStorage.removeItem(STORAGE_KEYS.REMBOURSEMENTS); localStorage.removeItem(STORAGE_KEYS.RECETTES);
+            loadAllData(); refreshAllTables(); updateComparatif(); alert("Données effacées.");
+        }
+    });
+    
+    // Gestion onglets
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+    
+    function init() {
+        loadAllData();
+        refreshAllTables();
+        updateComparatif();
+        const today = new Date().toISOString().slice(0,10);
+        document.getElementById('bonDate').value = today;
+        document.getElementById('opDate').value = today;
+        document.getElementById('rembDate').value = today;
+        document.getElementById('recetteDate').value = today;
+    }
+    init();
+    
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(err => console.error("SW error:", err)); });
+    }
+</script>
+</body>
+</html>

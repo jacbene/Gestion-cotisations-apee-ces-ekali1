@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="APEE CES EKALI1">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/web-app-manifest-512x512.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="icons/web-app-manifest-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="icon" type="image/png"  href="icons/favicon.ico">
+
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+        
+    <link rel="manifest" href="manifest.json">
+    <title>APEE CES EKALI 1 - Accueil</title>
+    <!-- Bannière PWA CSS -->
+    <style>
+        /* Bannière d'installation PWA */
+        .pwa-install-banner {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 16px 20px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            animation: slideUp 0.3s ease-out;
+            font-family: system-ui, 'Segoe UI', sans-serif;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .pwa-install-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pwa-install-text {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .pwa-install-text h3 {
+            margin: 0 0 4px 0;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pwa-install-text p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .pwa-install-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pwa-install-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .pwa-install-btn.primary {
+            background: white;
+            color: #2e7d32;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .pwa-install-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .pwa-install-btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .pwa-install-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Animation de disparition */
+        .pwa-install-banner.hide {
+            animation: slideDown 0.3s ease-out forwards;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .pwa-install-banner {
+                padding: 12px 16px;
+            }
+
+            .pwa-install-content {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .pwa-install-text h3 {
+                font-size: 0.95rem;
+            }
+
+            .pwa-install-text p {
+                font-size: 0.85rem;
+            }
+
+            .pwa-install-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .pwa-install-btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #eef2f5;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e4b2e, #2e7d32);
+            color: white;
+            padding: 2rem;
+            border-radius: 32px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        /* Grille des cartes */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .nav-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e9edf2;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .nav-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+            border-color: #2e7d32;
+        }
+        .nav-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .nav-card h3 {
+            font-size: 1.5rem;
+            color: #1e4b2e;
+            margin-bottom: 0.5rem;
+        }
+        .nav-card p {
+            color: #4a627a;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .badge-new {
+            background: #ff9800;
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #4a627a;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Bannière d'installation PWA -->
+    <div id="pwaInstallBanner" class="pwa-install-banner">
+        <div class="pwa-install-content">
+            <div class="pwa-install-text">
+                <h3>📱 Installer l'application</h3>
+                <p>Installez l'APEE sur votre appareil pour un accès rapide et hors ligne</p>
+            </div>
+            <div class="pwa-install-buttons">
+                <button id="pwaInstallBtn" class="pwa-install-btn primary">
+                    ⬇️ Installer maintenant
+                </button>
+                <button id="pwaCloseBannerBtn" class="pwa-install-btn secondary">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>  
+<div class="dashboard-container">
+    <div class="header">
+        <h1>📋 APEE CES D'EKALI 1 - MFOU</h1>
+        <p>Plateforme de gestion des cotisations et bilans financiers</p>
+    </div>
+
+    <div class="nav-grid">
+        <!-- Ajouter une nouvelle carte dans la grille nav-grid -->
+        <a href="recherche-parent.html" class="nav-card">
+            <div class="nav-icon">🔍</div>
+            <h3>Recherche Parent/Élève</h3>
+            <p>Retrouvez toutes les infos d'un parent ou d'un élève rapidement.</p>
+            <span class="badge-new">Recherche avancée</span>
+        </a>       
+        <!-- Carte 1 : Formulaire d'enregistrement -->
+        <a href="formulaire-cotisations.html" class="nav-card">
+            <div class="nav-icon">📝</div>
+            <h3>Enregistrer une cotisation</h3>
+            <p>Saisir les paiements des parents, ajouter des élèves et gérer les reçus.</p>
+            <span class="badge-new">Formulaire dynamique</span>
+        </a>
+
+        <!-- Carte 2 : Générateur de bilans -->
+        <a href="bilan-financier.html" class="nav-card">
+            <div class="nav-icon">📊</div>
+            <h3>Générateur de bilans</h3>
+            <p>Consulter les statistiques, exporter en PDF/JSON et suivre l’objectif financier.</p>
+        </a>
+        
+         <!-- Carte 3 : Formulares de getn finaniere -->
+      <a href="gestion-financiere.html" class="nav-card">
+          <div class="nav-icon">⚖️</div>
+          <h3>Gestion financière</h3>
+          <p>Bons de commande, ordres de paiement, remboursements et suivi budgétaire.</p>
+      </a>      
+
+        <!-- Carte 4 : Archives / Export (page future) -->
+        <a href="archives.html" class="nav-card">
+            <div class="nav-icon">📁</div>
+            <h3>Archives & historique</h3>
+            <p>Rechercher des paiements anciens, exporter l’historique complet.</p>
+        </a>
+
+        <!-- Carte 5 : Paramètres (optionnel) -->
+        <a href="parametres.html" class="nav-card">
+            <div class="nav-icon">⚙️</div>
+            <h3>Paramètres</h3>
+            <p>Modifier le montant de la cotisation, l’objectif, sauvegardes.</p>
+        </a>
+    </div>
+
+    <div class="footer">
+        📌 Toutes les données sont stockées localement dans votre navigateur.<br>
+        Utilisez l’export JSON pour sauvegarder vos informations.
+    </div>
+</div>
+     <!-- ... fin du contenu de la page ... -->
+<script>    
+    // =============================================
+    // GESTION PWA AMÉLIORÉE AVEC BANNIÈRE
+    // =============================================
+    class PWAManager {
+      constructor() {
+        this.deferredPrompt = null;
+        this.isInstalled = this.checkIfInstalled();
+        this.bannerDismissed = localStorage.getItem('pwa-banner-dismissed') === 'true';
+        this.init();
+      }
+
+      checkIfInstalled() {
+        return (
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone === true ||
+          document.referrer.includes('android-app://')
+        );
+      }
+
+      init() {
+        if (this.isInstalled) {
+          this.setupStandaloneMode();
+          return;
+        }
+
+        this.setupInstallPrompt();
+        this.registerServiceWorker();
+      }
+
+      setupInstallPrompt() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          this.deferredPrompt = e;
+          if (!this.bannerDismissed) {
+            this.showBanner();
+          }
+        });
+
+        window.addEventListener('appinstalled', () => {
+          console.log('✅ Application installée avec succès');
+          this.deferredPrompt = null;
+          this.hideBanner();
+          localStorage.setItem('pwa-banner-dismissed', 'true');
+        });
+      }
+
+      showBanner() {
+        const banner = document.getElementById('pwaInstallBanner');
+        if (banner) {
+          banner.style.display = 'block';
+          
+          // Bouton d'installation
+          const installBtn = document.getElementById('pwaInstallBtn');
+          if (installBtn) {
+            installBtn.addEventListener('click', () => this.installApp());
+          }
+
+          // Bouton de fermeture
+          const closeBtn = document.getElementById('pwaCloseBannerBtn');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.dismissBanner());
+          }
+        }
+      }
+
+      hideBanner() {
+        const banner = document.getElementById('pwaInstallBanner');
+        if (banner) {
+          banner.classList.add('hide');
+          setTimeout(() => {
+            banner.style.display = 'none';
+          }, 300);
+        }
+      }
+
+      dismissBanner() {
+        this.hideBanner();
+        localStorage.setItem('pwa-banner-dismissed', 'true');
+        this.bannerDismissed = true;
+      }
+
+      async installApp() {
+        if (!this.deferredPrompt) {
+          console.log('Installation non disponible');
+          return;
+        }
+
+        const installBtn = document.getElementById('pwaInstallBtn');
+        if (installBtn) {
+          installBtn.disabled = true;
+          installBtn.innerHTML = '⏳ Installation en cours...';
+        }
+
+        this.deferredPrompt.prompt();
+        const { outcome } = await this.deferredPrompt.userChoice;
+
+        if (outcome === 'accepted') {
+          console.log('✅ Application installée');
+          setTimeout(() => this.hideBanner(), 1500);
+        } else {
+          console.log('❌ Installation annulée');
+          if (installBtn) {
+            installBtn.disabled = false;
+            installBtn.innerHTML = '⬇️ Installer maintenant';
+          }
+        }
+
+        this.deferredPrompt = null;
+      }
+
+      setupStandaloneMode() {
+        document.documentElement.style.height = '100vh';
+        document.body.style.height = '100vh';
+      }
+
+      registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => {
+              console.log('✅ Service Worker enregistré', reg.scope);
+              reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('🔄 Mise à jour disponible');
+                  }
+                });
+              });
+            })
+            .catch(err => console.error('❌ Erreur Service Worker:', err));
+        }
+      }
+    }
+
+    // Initialiser PWA au chargement
+    window.addEventListener('load', () => {
+      new PWAManager();
+    });
+    
+        function updateAssociationName() {
+            const stored = localStorage.getItem('apee_app_settings');
+            if (stored) {
+                try {
+                    const settings = JSON.parse(stored);
+                    if (settings.nomAssociation) {
+                        document.querySelector('.header h1').innerHTML = `📋 ${settings.nomAssociation}`;
+                    }
+                } catch(e) {}
+            }
+        }
+         updateAssociationName();   
+    
+    </script>
+</body>
+</html>  
