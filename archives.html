@@ -206,6 +206,16 @@
             padding: 40px 20px;
             font-style: italic;
         }
+        .revenue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fbfd;
+            padding: 8px 12px;
+            border-radius: 40px;
+            margin-bottom: 8px;
+        }
+        .revenue-item span { font-size: 0.85rem; }
         @media (max-width: 700px) {
             body { padding: 16px; }
             th, td { padding: 6px 8px; }
@@ -234,12 +244,23 @@
         <div class="stats-grid" id="statsContainer"></div>
     </div>
 
+    <!-- Affichage des autres recettes (hors cotisations) issues de la gestion financière -->
+    <div class="card no-print">
+        <div class="card-title">💰 Autres recettes (hors cotisations)</div>
+        <div id="otherRevenuesList" style="max-height: 240px; overflow-y: auto;">
+            <div class="text-center" style="color: #6c757d; padding: 12px;">Chargement...</div>
+        </div>
+        <div class="alert alert-info" style="margin-top: 12px; font-size: 0.75rem;">
+            💡 Ces recettes (membres d'honneur, subventions, dons) sont gérées depuis l'onglet "Recettes" de la <strong>Gestion financière</strong>.
+        </div>
+    </div>
+
     <!-- Visualisations -->
     <div class="card no-print">
         <div class="card-title">📈 Visualisations</div>
         <div class="charts-container">
             <div class="chart-card">
-                <h4 style="margin-bottom: 10px;">📅 Encaissements par mois</h4>
+                <h4 style="margin-bottom: 10px;">📅 Encaissements par mois (cotisations)</h4>
                 <canvas id="monthlyIncomeChart"></canvas>
             </div>
             <div class="chart-card">
@@ -317,7 +338,6 @@
             <button id="exportJSONBtn" class="btn-secondary">📦 Exporter JSON (sauvegarde complète)</button>
             <button id="importJSONBtn" class="btn-secondary">📂 Restaurer depuis JSON</button>
             <button id="deleteSelectedBtn" class="btn-danger">🗑️ Supprimer les paiements sélectionnés</button>
-       
             <input type="file" id="importFileInput" accept=".json" style="display:none;">
         </div>
         <div id="alertContainer"></div>
@@ -356,6 +376,7 @@
     const STORAGE_BONS = 'apee_bons_commande';
     const STORAGE_ORDRES = 'apee_ordres_paiement';
     const STORAGE_REMBOURSEMENTS = 'apee_remboursements';
+    const STORAGE_RECETTES = 'apee_recettes';   // Recettes (cotisations et autres) depuis gestion financière
 
     let allPayments = [];
     let filteredPayments = [];
@@ -366,10 +387,11 @@
     let allBons = [];
     let allOrdres = [];
     let allRemboursements = [];
+    let allRecettes = [];      // toutes les recettes (cotisations + autres)
 
     let monthlyIncomeChart, monthlyExpenseChart, statusChart, expenseByLineChart;
 
-    // ==================== CHARGEMENT PARAMÈTRES ====================
+    // ==================== CHARGEMENT DES DONNÉES ====================
     function loadAssociationName() {
         const stored = localStorage.getItem(STORAGE_SETTINGS_KEY);
         if (stored) {
@@ -410,6 +432,23 @@
         } else { allRemboursements = []; }
     }
 
+    function loadRecettes() {
+        const stored = localStorage.getItem(STORAGE_RECETTES);
+        if (stored) {
+            try {
+                allRecettes = JSON.parse(stored);
+                if (!Array.isArray(allRecettes)) allRecettes = [];
+            } catch(e) { allRecettes = []; }
+        } else {
+            allRecettes = [];
+        }
+    }
+
+    // Fonction pour obtenir les recettes "autres que cotisation" (membres d'honneur, subventions, dons)
+    function getOtherRevenues() {
+        return allRecettes.filter(r => r.nature && r.nature !== 'Cotisation (12 500 FCFA/élève)');
+    }
+
     function normalizePayment(p) {
         return {
             id: p.id || Date.now() + Math.random(),
@@ -428,7 +467,7 @@
         localStorage.setItem(STORAGE_PAYMENTS_KEY, JSON.stringify(allPayments));
         applyFiltersAndRefresh();
         updateAllVisuals();
-        showMessage("✅ Données sauvegardées", "success");
+        showMessage("✅ Données cotisations sauvegardées", "success");
     }
 
     function showMessage(msg, type = "info") {
@@ -498,28 +537,35 @@
         applyFilters();
     }
 
-    // ==================== STATISTIQUES & GRAPHIQUES (CORRIGÉS) ====================
+    // ==================== STATISTIQUES & GRAPHIQUES ====================
     function updateStatsAndCharts() {
-        // 1. Statistiques globales (cotisations + dépenses)
+        // Cotisations
         const totalParents = new Set(allPayments.map(p => p.parentNom + '|' + p.telephone)).size;
         const totalEncaisse = allPayments.reduce((s, p) => s + p.montantVerse, 0);
         const totalEleves = allPayments.reduce((s, p) => s + p.students.length, 0);
         const totalAttendu = allPayments.reduce((s, p) => s + (p.students.length * 12500), 0);
         const tauxAtteinte = totalAttendu > 0 ? (totalEncaisse / totalAttendu * 100).toFixed(1) : 0;
 
+        // Autres recettes (depuis gestion financière)
+        const otherRevenues = getOtherRevenues();
+        const totalOtherRevenues = otherRevenues.reduce((sum, rev) => sum + (rev.montant || 0), 0);
+        const totalRecettes = totalEncaisse + totalOtherRevenues;
+
         const totalDepenses = [...allBons, ...allOrdres, ...allRemboursements].reduce((s, d) => s + (d.montant || 0), 0);
-        const soldeFinancier = totalEncaisse - totalDepenses;
+        const soldeFinancier = totalRecettes - totalDepenses;
 
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-box"><div class="stat-label">👨 Parents</div><div class="stat-value">${totalParents}</div></div>
             <div class="stat-box"><div class="stat-label">👧 Élèves</div><div class="stat-value">${totalEleves}</div></div>
             <div class="stat-box"><div class="stat-label">💰 Cotisations encaissées</div><div class="stat-value">${totalEncaisse.toLocaleString()} FCFA</div></div>
+            <div class="stat-box"><div class="stat-label">🤝 Autres recettes</div><div class="stat-value" style="color:#0f5b7a;">${totalOtherRevenues.toLocaleString()} FCFA</div></div>
+            <div class="stat-box"><div class="stat-label">📈 Recettes totales</div><div class="stat-value">${totalRecettes.toLocaleString()} FCFA</div></div>
             <div class="stat-box"><div class="stat-label">📉 Dépenses totales</div><div class="stat-value">${totalDepenses.toLocaleString()} FCFA</div></div>
             <div class="stat-box"><div class="stat-label">⚖️ Solde (recettes - dépenses)</div><div class="stat-value" style="color: ${soldeFinancier >= 0 ? '#2e7d32' : '#dc2626'}">${soldeFinancier.toLocaleString()} FCFA</div></div>
-            <div class="stat-box"><div class="stat-label">🎯 Taux atteinte objectif</div><div class="stat-value">${tauxAtteinte}%</div></div>
+            <div class="stat-box"><div class="stat-label">🎯 Taux atteinte objectif cotisation</div><div class="stat-value">${tauxAtteinte}%</div></div>
         `;
 
-        // 2. Graphique : Encaissements par mois
+        // Graphique mensuel des cotisations
         const incomeMonthly = {};
         allPayments.forEach(p => {
             const date = p.date.split(' ')[0];
@@ -527,36 +573,21 @@
             incomeMonthly[yearMonth] = (incomeMonthly[yearMonth] || 0) + p.montantVerse;
         });
         const sortedMonths = Object.keys(incomeMonthly).sort();
-        const monthLabels = sortedMonths.map(m => {
-            const [y, mo] = m.split('-');
-            return `${mo}/${y}`;
-        });
+        const monthLabels = sortedMonths.map(m => { const [y, mo] = m.split('-'); return `${mo}/${y}`; });
         const incomeValues = sortedMonths.map(m => incomeMonthly[m]);
-
         if (monthlyIncomeChart) monthlyIncomeChart.destroy();
         const ctxIncome = document.getElementById('monthlyIncomeChart').getContext('2d');
         monthlyIncomeChart = new Chart(ctxIncome, {
             type: 'line',
-            data: {
-                labels: monthLabels,
-                datasets: [{
-                    label: 'Encaissements (FCFA)',
-                    data: incomeValues,
-                    borderColor: '#2e7d32',
-                    backgroundColor: 'rgba(46,125,50,0.1)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
+            data: { labels: monthLabels, datasets: [{ label: 'Encaissements cotisations (FCFA)', data: incomeValues, borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', fill: true, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: true }
         });
 
-        // 3. Graphique : Dépenses par mois (avec gestion si aucune donnée)
+        // Dépenses mensuelles
         const expenseMonthly = {};
         const allExpenses = [...allBons, ...allOrdres, ...allRemboursements];
         const expenseChartCanvas = document.getElementById('monthlyExpenseChart');
         const expenseNoDataMsg = document.getElementById('expenseNoDataMsg');
-
         if (allExpenses.length === 0) {
             expenseChartCanvas.style.display = 'none';
             expenseNoDataMsg.style.display = 'block';
@@ -569,32 +600,18 @@
                 expenseMonthly[yearMonth] = (expenseMonthly[yearMonth] || 0) + (exp.montant || 0);
             });
             const expenseMonthsSorted = Object.keys(expenseMonthly).sort();
-            const expenseLabels = expenseMonthsSorted.map(m => {
-                const [y, mo] = m.split('-');
-                return `${mo}/${y}`;
-            });
+            const expenseLabels = expenseMonthsSorted.map(m => { const [y, mo] = m.split('-'); return `${mo}/${y}`; });
             const expenseValues = expenseMonthsSorted.map(m => expenseMonthly[m]);
-
             if (monthlyExpenseChart) monthlyExpenseChart.destroy();
             const ctxExpense = expenseChartCanvas.getContext('2d');
             monthlyExpenseChart = new Chart(ctxExpense, {
                 type: 'line',
-                data: {
-                    labels: expenseLabels,
-                    datasets: [{
-                        label: 'Dépenses (FCFA)',
-                        data: expenseValues,
-                        borderColor: '#dc2626',
-                        backgroundColor: 'rgba(220,38,38,0.1)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: true }
+                data: { labels: expenseLabels, datasets: [{ label: 'Dépenses (FCFA)', data: expenseValues, borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,0.1)', fill: true, tension: 0.3 }] },
+                options: { responsive: true }
             });
         }
 
-        // 4. Graphique : Statuts des cotisations (TOUJOURS trois catégories)
+        // Statuts des cotisations
         let soldeCount = 0, partielCount = 0, retardCount = 0;
         allPayments.forEach(p => {
             const s = computeStatut(p);
@@ -602,33 +619,15 @@
             else if (s === 'partiel') partielCount++;
             else retardCount++;
         });
-        // Même si une valeur est 0, on garde l'entrée pour la légende
-        const statusData = [soldeCount, partielCount, retardCount];
-        const statusLabels = ['✅ Soldés', '⚠️ Partiels', '❌ En retard'];
-        const statusColors = ['#2e7d32', '#f59e0b', '#dc2626'];
-
         if (statusChart) statusChart.destroy();
         const ctxStatus = document.getElementById('statusChart').getContext('2d');
         statusChart = new Chart(ctxStatus, {
             type: 'pie',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusData,
-                    backgroundColor: statusColors,
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} parent(s)` } }
-                }
-            }
+            data: { labels: ['✅ Soldés', '⚠️ Partiels', '❌ En retard'], datasets: [{ data: [soldeCount, partielCount, retardCount], backgroundColor: ['#2e7d32', '#f59e0b', '#dc2626'], borderWidth: 0 }] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
         });
 
-        // 5. Graphique : Dépenses par ligne budgétaire (gestion si aucune donnée)
+        // Dépenses par ligne budgétaire
         const lineBudgetCanvas = document.getElementById('expenseByLineChart');
         const lineNoDataMsg = document.getElementById('lineNoDataMsg');
         if (allExpenses.length === 0) {
@@ -637,13 +636,7 @@
         } else {
             lineBudgetCanvas.style.display = 'block';
             lineNoDataMsg.style.display = 'none';
-            const lineBudgets = {
-                "Fonctionnement": 0,
-                "Projets éducatifs": 0,
-                "Événements": 0,
-                "Maintenance": 0,
-                "Cantine scolaire": 0
-            };
+            const lineBudgets = { "Fonctionnement": 0, "Projets éducatifs": 0, "Événements": 0, "Maintenance": 0, "Cantine scolaire": 0 };
             allExpenses.forEach(exp => {
                 const ligne = exp.ligne || 'Fonctionnement';
                 if (lineBudgets.hasOwnProperty(ligne)) lineBudgets[ligne] += (exp.montant || 0);
@@ -651,26 +644,38 @@
             });
             const labelsLine = Object.keys(lineBudgets);
             const dataLine = labelsLine.map(l => lineBudgets[l]);
-            const vibrantColors = ['#2563eb', '#ea580c', '#7c3aed', '#db2777', '#0891b2'];
             if (expenseByLineChart) expenseByLineChart.destroy();
             const ctxLine = lineBudgetCanvas.getContext('2d');
             expenseByLineChart = new Chart(ctxLine, {
                 type: 'pie',
-                data: {
-                    labels: labelsLine,
-                    datasets: [{
-                        data: dataLine,
-                        backgroundColor: vibrantColors.slice(0, labelsLine.length),
-                        borderWidth: 0
-                    }]
-                },
+                data: { labels: labelsLine, datasets: [{ data: dataLine, backgroundColor: ['#2563eb', '#ea580c', '#7c3aed', '#db2777', '#0891b2'], borderWidth: 0 }] },
                 options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
             });
         }
     }
 
+    // Affichage de la liste des autres recettes (lecture seule)
+    function renderOtherRevenuesList() {
+        const container = document.getElementById('otherRevenuesList');
+        if (!container) return;
+        const otherRevs = getOtherRevenues();
+        if (otherRevs.length === 0) {
+            container.innerHTML = '<div class="text-center" style="color: #6c757d; padding: 12px;">Aucune recette hors cotisation pour le moment (subventions, dons, membres d\'honneur…).</div>';
+            return;
+        }
+        // tri par date récente
+        const sorted = [...otherRevs].sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+        container.innerHTML = sorted.map(rev => `
+            <div class="revenue-item">
+                <div><strong>${escapeHtml(rev.nature)}</strong><br><span style="font-size:0.7rem;">📅 ${formatDateFR(rev.date)}</span><br><small>Source : ${escapeHtml(rev.source)}</small></div>
+                <div style="font-weight:700;">${(rev.montant || 0).toLocaleString()} FCFA</div>
+            </div>
+        `).join('');
+    }
+
     function updateAllVisuals() {
         updateStatsAndCharts();
+        renderOtherRevenuesList();
     }
 
     // ==================== AFFICHAGE TABLEAU COTISATIONS ====================
@@ -690,13 +695,11 @@
         const start = (currentPage - 1) * rowsPerPage;
         const end = start + rowsPerPage;
         const pageItems = filteredPayments.slice(start, end);
-
         if (pageItems.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" class="text-center">Aucune cotisation trouvée</td></tr>';
             renderPagination();
             return;
         }
-
         tbody.innerHTML = pageItems.map(p => {
             const statut = computeStatut(p);
             const badgeClass = statut === 'solde' ? 'badge-solde' : (statut === 'partiel' ? 'badge-partiel' : 'badge-retard');
@@ -776,6 +779,7 @@
         displayedIds.forEach(id => selectedIds.add(id));
         renderTable();
     }
+
     function deselectAllCurrentPage() {
         const displayedIds = filteredPayments.slice((currentPage-1)*rowsPerPage, currentPage*rowsPerPage).map(p => p.id);
         displayedIds.forEach(id => selectedIds.delete(id));
@@ -794,16 +798,7 @@
             const reste = totalDu - p.montantVerse;
             const statut = computeStatut(p);
             const elevesList = p.students.map(s => `${s.nom} (${s.classe || '?'})`).join('; ');
-            return [
-                formatDateFR(p.date),
-                p.parentNom,
-                p.telephone,
-                elevesList,
-                p.montantVerse,
-                reste,
-                statut === 'solde' ? 'Soldé' : (statut === 'partiel' ? 'Partiel' : 'En retard'),
-                p.observations || ''
-            ];
+            return [formatDateFR(p.date), p.parentNom, p.telephone, elevesList, p.montantVerse, reste, statut === 'solde' ? 'Soldé' : (statut === 'partiel' ? 'Partiel' : 'En retard'), p.observations || ''];
         });
         let csvContent = headers.join(',') + "\n";
         rows.forEach(row => {
@@ -868,108 +863,58 @@
         }
     }
 
-function exportPDF() {
-    // Ouvrir une nouvelle fenêtre avec le contenu à imprimer
-    const printWindow = window.open('', '_blank');
-    const content = document.getElementById('printableArea').cloneNode(true);
-    
-    // Supprimer les éléments no-print (cases à cocher, boutons, pagination)
-    content.querySelectorAll('.no-print').forEach(el => el.remove());
-    
-    // Récupérer le nom de l'association pour l'en-tête
-    const assocName = document.getElementById('associationName')?.innerText || 'Archives APEE';
-    const currentDate = new Date().toLocaleDateString('fr-FR');
-    
-    // Générer le HTML de la nouvelle fenêtre
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Archives - ${assocName}</title>
-            <style>
-                body {
-                    font-family: system-ui, 'Segoe UI', sans-serif;
-                    margin: 1cm;
-                    background: white;
-                }
-                .header-print {
-                    text-align: center;
-                    margin-bottom: 20px;
-                    border-bottom: 2px solid #2e7d32;
-                    padding-bottom: 10px;
-                }
-                .header-print h1 {
-                    color: #1e4b2e;
-                    margin: 0;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 20px;
-                    font-size: 12px;
-                }
-                th, td {
-                    border: 1px solid #999;
-                    padding: 6px;
-                    text-align: left;
-                    vertical-align: top;
-                }
-                th {
-                    background: #eef2f7;
-                }
-                .badge {
-                    display: inline-block;
-                    padding: 2px 6px;
-                    border-radius: 20px;
-                    font-size: 10px;
-                }
-                .badge-solde { background: #dcfce7; color: #166534; }
-                .badge-partiel { background: #fef3c7; color: #92400e; }
-                .badge-retard { background: #fee2e2; color: #991b1b; }
-                footer {
-                    margin-top: 30px;
-                    text-align: center;
-                    font-size: 10px;
-                    color: #666;
-                }
-                @media print {
-                    body { margin: 0; }
-                    .page-break { page-break-before: always; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header-print">
-                <h1>${assocName}</h1>
-                <p>Archives des cotisations - Généré le ${currentDate}</p>
-            </div>
-            ${content.innerHTML}
-            <footer>Document généré automatiquement - APEE CES EKALI 1</footer>
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-    // Optionnel : fermer la fenêtre après impression
-    //printWindow.onafterprint = () => printWindow.close();
-}
+    function exportPDF() {
+        const printWindow = window.open('', '_blank');
+        const content = document.getElementById('printableArea').cloneNode(true);
+        content.querySelectorAll('.no-print').forEach(el => el.remove());
+        const assocName = document.getElementById('associationName')?.innerText || 'Archives APEE';
+        const currentDate = new Date().toLocaleDateString('fr-FR');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Archives - ${assocName}</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; margin: 1cm; background: white; }
+                    .header-print { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2e7d32; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid #999; padding: 6px; }
+                    th { background: #eef2f7; }
+                    .badge { display: inline-block; padding: 2px 6px; border-radius: 20px; }
+                    .badge-solde { background: #dcfce7; }
+                    .badge-partiel { background: #fef3c7; }
+                    .badge-retard { background: #fee2e2; }
+                    footer { margin-top: 30px; text-align: center; font-size: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="header-print"><h1>${assocName}</h1><p>Archives des cotisations - ${currentDate}</p></div>
+                ${content.innerHTML}
+                <footer>Document généré automatiquement - APEE CES EKALI 1</footer>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.onafterprint = () => printWindow.close();
+    }
 
     // ==================== INITIALISATION ====================
     function init() {
         loadAssociationName();
         loadPayments();
         loadExpenses();
+        loadRecettes();
         applyFiltersAndRefresh();
+        renderOtherRevenuesList();
+
         document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
         document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
         document.getElementById('exportCSVBtn').addEventListener('click', exportCSV);
         document.getElementById('exportJSONBtn').addEventListener('click', exportJSON);
         document.getElementById('exportPDFBtn').addEventListener('click', exportPDF);
         document.getElementById('importJSONBtn').addEventListener('click', () => document.getElementById('importFileInput').click());
-        document.getElementById('importFileInput').addEventListener('change', (e) => {
-            if (e.target.files.length) importJSON(e.target.files[0]);
-            e.target.value = '';
-        });
+        document.getElementById('importFileInput').addEventListener('change', (e) => { if (e.target.files.length) importJSON(e.target.files[0]); e.target.value = ''; });
         document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelected);
         document.getElementById('selectAllBtn').addEventListener('click', selectAllCurrentPage);
         document.getElementById('deselectAllBtn').addEventListener('click', deselectAllCurrentPage);
@@ -979,7 +924,6 @@ function exportPDF() {
             else displayedIds.forEach(id => selectedIds.delete(id));
             renderTable();
         });
-        document.getElementById('createDemoExpensesBtn').addEventListener('click', createDemoExpenses);
     }
 
     window.addEventListener('load', init);
