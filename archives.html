@@ -627,7 +627,7 @@
             options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
         });
 
-        // Dépenses par ligne budgétaire
+        // ========== CAMEMBERT DES DÉPENSES PAR LIGNE BUDGÉTAIRE (CORRIGÉ) ==========
         const lineBudgetCanvas = document.getElementById('expenseByLineChart');
         const lineNoDataMsg = document.getElementById('lineNoDataMsg');
         if (allExpenses.length === 0) {
@@ -636,20 +636,45 @@
         } else {
             lineBudgetCanvas.style.display = 'block';
             lineNoDataMsg.style.display = 'none';
-            const lineBudgets = { "Fonctionnement": 0, "Projets éducatifs": 0, "Événements": 0, "Maintenance": 0, "Cantine scolaire": 0 };
+            
+            // Agrégation des dépenses par ligne
+            const rawBudgets = {};
             allExpenses.forEach(exp => {
                 const ligne = exp.ligne || 'Fonctionnement';
-                if (lineBudgets.hasOwnProperty(ligne)) lineBudgets[ligne] += (exp.montant || 0);
-                else lineBudgets[ligne] = (exp.montant || 0);
+                rawBudgets[ligne] = (rawBudgets[ligne] || 0) + (exp.montant || 0);
             });
-            const labelsLine = Object.keys(lineBudgets);
-            const dataLine = labelsLine.map(l => lineBudgets[l]);
+            
+            // Filtrer pour ne garder que les lignes avec un montant > 0
+            const filteredBudgets = Object.fromEntries(
+                Object.entries(rawBudgets).filter(([_, montant]) => montant > 0)
+            );
+            
+            const labelsLine = Object.keys(filteredBudgets);
+            const dataLine = labelsLine.map(l => filteredBudgets[l]);
+            
+            // Palette de couleurs étendue pour s'adapter au nombre de catégories
+            const colorPalette = ['#2563eb', '#ea580c', '#7c3aed', '#db2777', '#0891b2', '#16a34a', '#ca8a04', '#4f46e5'];
+            const backgroundColors = labelsLine.map((_, i) => colorPalette[i % colorPalette.length]);
+            
             if (expenseByLineChart) expenseByLineChart.destroy();
             const ctxLine = lineBudgetCanvas.getContext('2d');
             expenseByLineChart = new Chart(ctxLine, {
                 type: 'pie',
-                data: { labels: labelsLine, datasets: [{ data: dataLine, backgroundColor: ['#2563eb', '#ea580c', '#7c3aed', '#db2777', '#0891b2'], borderWidth: 0 }] },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                data: {
+                    labels: labelsLine,
+                    datasets: [{
+                        data: dataLine,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toLocaleString()} FCFA` } }
+                    }
+                }
             });
         }
     }
