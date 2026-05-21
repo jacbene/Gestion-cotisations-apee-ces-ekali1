@@ -868,101 +868,101 @@
         }
     }
 
-    function exportPDF() {
-        // Récupérer le tableau et son titre
-        const tableContainer = document.getElementById('printableArea');
-        const tableTitle = document.querySelector('#printableArea .card-title')?.innerText || 'Liste des cotisations';
-        const associationName = document.getElementById('associationName')?.innerText || 'APEE CES EKALI 1';
-        const currentDate = new Date().toLocaleDateString('fr-FR');
-        
-        // Cloner le tableau sans les éléments .no-print (cases à cocher, pagination, etc.)
-        const clone = tableContainer.cloneNode(true);
-        clone.querySelectorAll('.no-print').forEach(el => el.remove());
-        // Supprimer également les éventuels éléments de pagination ou boutons restants
-        clone.querySelectorAll('.pagination, .action-buttons, button, .filter-bar, .btn, .checkbox-col, input, select').forEach(el => el.remove());
-        // Retirer la colonne des cases à cocher si elle existe
-        const thCheckbox = clone.querySelector('th.checkbox-col');
-        if (thCheckbox) thCheckbox.remove();
-        clone.querySelectorAll('td.checkbox-col').forEach(td => td.remove());
-        
-        // Générer le contenu HTML pour impression
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Archives - ${associationName}</title>
-                <style>
-                    body {
-                        font-family: system-ui, 'Segoe UI', sans-serif;
-                        margin: 1.5cm;
-                        background: white;
-                    }
-                    .print-header {
-                        text-align: center;
-                        margin-bottom: 25px;
-                        border-bottom: 2px solid #2e7d32;
-                        padding-bottom: 10px;
-                    }
-                    .print-header h1 {
-                        color: #1e4b2e;
-                        margin: 0;
-                        font-size: 1.5rem;
-                    }
-                    .print-header p {
-                        margin: 5px 0 0;
-                        color: #4a627a;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-top: 20px;
-                        font-size: 11pt;
-                    }
-                    th, td {
-                        border: 1px solid #aaa;
-                        padding: 8px;
-                        text-align: left;
-                        vertical-align: top;
-                    }
-                    th {
-                        background: #eef2f7;
-                        font-weight: 600;
-                    }
-                    .badge {
-                        display: inline-block;
-                        padding: 3px 8px;
-                        border-radius: 20px;
-                        font-size: 9pt;
-                    }
-                    .badge-solde { background: #dcfce7; color: #166534; }
-                    .badge-partiel { background: #fef3c7; color: #92400e; }
-                    .badge-retard { background: #fee2e2; color: #991b1b; }
-                    footer {
-                        margin-top: 30px;
-                        text-align: center;
-                        font-size: 9pt;
-                        color: #666;
-                    }
-                    @media print {
-                        body { margin: 0; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="print-header">
-                    <h1>${escapeHtml(associationName)}</h1>
-                    <p>${escapeHtml(tableTitle)} - Généré le ${currentDate}</p>
-                </div>
-                ${clone.innerHTML}
-                <footer>Document généré automatiquement par l'application APEE CES EKALI 1</footer>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-        printWindow.onafterprint = () => printWindow.close();
-    }
+function exportPDF() {
+    // Récupérer le tableau et son titre
+    const tableContainer = document.getElementById('printableArea');
+    const tableTitle = document.querySelector('#printableArea .card-title')?.innerText || 'Liste des cotisations';
+    const associationName = document.getElementById('associationName')?.innerText || 'APEE CES EKALI 1';
+    const currentDate = new Date().toLocaleDateString('fr-FR');
+    
+    // Cloner le tableau sans les éléments .no-print (cases à cocher, pagination, etc.)
+    const clone = tableContainer.cloneNode(true);
+    clone.querySelectorAll('.no-print').forEach(el => el.remove());
+    // Supprimer également les éventuels éléments de pagination ou boutons restants
+    clone.querySelectorAll('.pagination, .action-buttons, button, .filter-bar, .btn, .checkbox-col, input, select').forEach(el => el.remove());
+    // Retirer la colonne des cases à cocher si elle existe
+    const thCheckbox = clone.querySelector('th.checkbox-col');
+    if (thCheckbox) thCheckbox.remove();
+    clone.querySelectorAll('td.checkbox-col').forEach(td => td.remove());
+    
+    // Générer le contenu HTML pour impression
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Archives - ${associationName}</title>
+            <style>
+                body {
+                    font-family: system-ui, 'Segoe UI', sans-serif;
+                    margin: 1.5cm;
+                    background: white;
+                }
+                .print-header {
+                    text-align: center;
+                    margin-bottom: 25px;
+                    border-bottom: 2px solid #2e7d32;
+                    padding-bottom: 10px;
+                }
+                .print-header h1 {
+                    color: #1e4b2e;
+                    margin: 0;
+                    font-size: 1.5rem;
+                }
+                .print-header p {
+                    margin: 5px 0 0;
+                    color: #4a627a;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                    font-size: 11pt;
+                }
+                th, td {
+                    border: 1px solid #aaa;
+                    padding: 8px;
+                    text-align: left;
+                    vertical-align: top;
+                }
+                th {
+                    background: #eef2f7;
+                    font-weight: 600;
+                }
+                .badge {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    border-radius: 20px;
+                    font-size: 9pt;
+                }
+                .badge-solde { background: #dcfce7; color: #166534; }
+                .badge-partiel { background: #fef3c7; color: #92400e; }
+                .badge-retard { background: #fee2e2; color: #991b1b; }
+                footer {
+                    margin-top: 30px;
+                    text-align: center;
+                    font-size: 9pt;
+                    color: #666;
+                }
+                @media print {
+                    body { margin: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-header">
+                <h1>${escapeHtml(associationName)}</h1>
+                <p>${escapeHtml(tableTitle)} - Généré le ${currentDate}</p>
+            </div>
+            ${clone.innerHTML}
+            <footer>Document généré automatiquement par l'application APEE CES EKALI 1</footer>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.onafterprint = () => printWindow.close();
+}
     // Données de démonstration pour dépenses (création de bons, ordres, remboursements fictifs)
     function createDemoExpenses() {
         const today = new Date().toISOString().slice(0,10);
