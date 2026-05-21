@@ -869,16 +869,89 @@
     }
 
     function exportPDF() {
-        const element = document.getElementById('printableArea');
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `archives_${new Date().toISOString().slice(0,10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-        };
-        html2pdf().set(opt).from(element).save();
-        showMessage("Génération PDF en cours...", "info");
+        // Ouvrir une nouvelle fenêtre avec le contenu à imprimer
+        const printWindow = window.open('', '_blank');
+        const content = document.getElementById('printableArea').cloneNode(true);
+        
+        // Supprimer les éléments no-print (cases à cocher, boutons, pagination)
+        content.querySelectorAll('.no-print').forEach(el => el.remove());
+        
+        // Récupérer le nom de l'association pour l'en-tête
+        const assocName = document.getElementById('associationName')?.innerText || 'Archives APEE';
+        const currentDate = new Date().toLocaleDateString('fr-FR');
+        
+        // Générer le HTML de la nouvelle fenêtre
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Archives - ${assocName}</title>
+                <style>
+                    body {
+                        font-family: system-ui, 'Segoe UI', sans-serif;
+                        margin: 1cm;
+                        background: white;
+                    }
+                    .header-print {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        border-bottom: 2px solid #2e7d32;
+                        padding-bottom: 10px;
+                    }
+                    .header-print h1 {
+                        color: #1e4b2e;
+                        margin: 0;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                        font-size: 12px;
+                    }
+                    th, td {
+                        border: 1px solid #999;
+                        padding: 6px;
+                        text-align: left;
+                        vertical-align: top;
+                    }
+                    th {
+                        background: #eef2f7;
+                    }
+                    .badge {
+                        display: inline-block;
+                        padding: 2px 6px;
+                        border-radius: 20px;
+                        font-size: 10px;
+                    }
+                    .badge-solde { background: #dcfce7; color: #166534; }
+                    .badge-partiel { background: #fef3c7; color: #92400e; }
+                    .badge-retard { background: #fee2e2; color: #991b1b; }
+                    footer {
+                        margin-top: 30px;
+                        text-align: center;
+                        font-size: 10px;
+                        color: #666;
+                    }
+                    @media print {
+                        body { margin: 0; }
+                        .page-break { page-break-before: always; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header-print">
+                    <h1>${assocName}</h1>
+                    <p>Archives des cotisations - Généré le ${currentDate}</p>
+                </div>
+                ${content.innerHTML}
+                <footer>Document généré automatiquement - APEE CES EKALI 1</footer>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+        // Optionnel : fermer la fenêtre après impression
+        printWindow.onafterprint = () => printWindow.close();
     }
 
     // Données de démonstration pour dépenses (création de bons, ordres, remboursements fictifs)
