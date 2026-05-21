@@ -190,6 +190,32 @@
             font-size: 0.75rem;
             margin: 0 2px;
         }
+        /* Modale simple */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+        }
+        .modal-card h3 { margin-bottom: 20px; color: #1e4b2e; }
+        .modal-card .form-group { margin-bottom: 16px; }
+        .modal-card label { display: block; margin-bottom: 6px; font-weight: 600; }
+        .modal-card input { width: 100%; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
         @media print {
             body { background: white; padding: 0; }
             .no-print { display: none; }
@@ -251,11 +277,11 @@
         <div id="tableMensuelleContainer"></div>
     </div>
     
-    <!-- Ajout : Suivi des parents débiteurs avec actions -->
+    <!-- Suivi des parents débiteurs avec actions (modification ajoutée) -->
     <div class="card" style="margin-top: 20px;">
         <div class="card-title">👨‍👩‍👧‍👦 Suivi des soldes par parent</div>
-        <button onclick="window.location.href='recherche-parent.html'" class="secondary">
-          🔍 Rechercher un parent ou un eleve
+        <button onclick="window.location.href='recherche-parent.html'" class="btn-secondary">
+          🔍 Rechercher un parent ou un élève
         </button>
         <div id="suiviParentsContainer"></div>
     </div>    
@@ -419,7 +445,7 @@
             if (moisMap.size === 0) {
                 tableContainer.innerHTML = '<p class="badge">Aucune donnée sur cette période</p>';
             } else {
-                let html = `<table><thead><tr><th>Mois</th><th>Nb paiements</th><th>Montant perçu</th><th>Élèves concernés</th></tr></thead><tbody>`;
+                let html = `</table><thead><tr><th>Mois</th><th>Nb paiements</th><th>Montant perçu</th><th>Élèves concernés</th></tr></thead><tbody>`;
                 for (let [mois, data] of Array.from(moisMap.entries()).sort()) {
                     const [annee, moisNum] = mois.split('-');
                     const moisNom = new Date(annee, moisNum-1, 1).toLocaleString('fr-FR', { month: 'long' });
@@ -431,7 +457,7 @@
         } 
     }
 
-    // ----- Fonctions de suppression et impression -----
+    // ----- Fonctions de suppression et modification -----
     function supprimerParent(parentNom, telephone) {
         if (!confirm(`Supprimer définitivement TOUS les paiements de ${parentNom} (${telephone || 'sans téléphone'}) ?`)) return;
         const before = payments.length;
@@ -445,13 +471,74 @@
         alert("Parent supprimé avec succès.");
     }
 
+    // Nouvelle fonction : Modifier un parent (nom, téléphone)
+    function modifierParent(ancienNom, ancienTel) {
+        // Ouvrir une modale pour saisir les nouvelles informations
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'modal-overlay';
+        modalDiv.innerHTML = `
+            <div class="modal-card">
+                <h3>✏️ Modifier le parent</h3>
+                <div class="form-group">
+                    <label>Nouveau nom du parent</label>
+                    <input type="text" id="newParentNom" value="${escapeHtml(ancienNom)}">
+                </div>
+                <div class="form-group">
+                    <label>Nouveau téléphone</label>
+                    <input type="text" id="newParentTel" value="${escapeHtml(ancienTel)}">
+                </div>
+                <div class="modal-buttons">
+                    <button id="modalConfirmBtn" class="btn-secondary">Enregistrer</button>
+                    <button id="modalCancelBtn" class="btn-outline">Annuler</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+
+        const confirmBtn = modalDiv.querySelector('#modalConfirmBtn');
+        const cancelBtn = modalDiv.querySelector('#modalCancelBtn');
+
+        const closeModal = () => modalDiv.remove();
+
+        confirmBtn.addEventListener('click', () => {
+            const newNom = modalDiv.querySelector('#newParentNom').value.trim();
+            const newTel = modalDiv.querySelector('#newParentTel').value.trim();
+            if (!newNom) {
+                alert("Le nom ne peut pas être vide.");
+                return;
+            }
+            // Mettre à jour tous les paiements correspondant à l'ancien parent
+            let modifCount = 0;
+            payments = payments.map(p => {
+                if (p.parentNom === ancienNom && p.telephone === ancienTel) {
+                    modifCount++;
+                    return { ...p, parentNom: newNom, telephone: newTel };
+                }
+                return p;
+            });
+            if (modifCount > 0) {
+                saveToLocal();
+                refreshAllUI();
+                alert(`✅ Parent modifié avec succès (${modifCount} transaction(s) mise(s) à jour).`);
+            } else {
+                alert("Aucune transaction trouvée pour ce parent.");
+            }
+            closeModal();
+        });
+
+        cancelBtn.addEventListener('click', closeModal);
+        // Fermer en cliquant en dehors
+        modalDiv.addEventListener('click', (e) => {
+            if (e.target === modalDiv) closeModal();
+        });
+    }
+
     function imprimerParent(parentNom, telephone) {
         const transactions = payments.filter(p => p.parentNom === parentNom && p.telephone === telephone);
         if (transactions.length === 0) {
             alert("Aucune transaction trouvée pour ce parent.");
             return;
         }
-        // Calcul du total dû et versé
         let totalDu = 0, totalVerse = 0;
         let allStudents = [];
         transactions.forEach(t => {
@@ -461,7 +548,6 @@
             if (t.students) allStudents.push(...t.students);
         });
         const solde = totalDu - totalVerse;
-        // Générer le contenu HTML d'impression
         const printContent = `
         <html>
         <head><title>Fiche parent - ${escapeHtml(parentNom)}</title>
@@ -516,7 +602,6 @@
             return;
         }
         const cloneTable = table.cloneNode(true);
-        // Supprimer les boutons d'action dans la colonne Actions pour l'impression
         cloneTable.querySelectorAll('.action-btns').forEach(btn => btn.remove());
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
@@ -542,7 +627,7 @@
         printWindow.print();
     }
 
-    // Fonction d'affichage du tableau avec colonne Actions
+    // Fonction d'affichage du tableau avec colonne Actions (Supprimer, Modifier, Imprimer)
     function afficherSuiviParents() {
         const paiements = getFilteredPayments();
         const soldes = new Map();
@@ -581,6 +666,7 @@
                     <td>${s.totalVerse.toLocaleString()}</td>
                     <td style="${soldeStyle}">${soldeText}</td>
                     <td class="action-btns">
+                        <button class="btn-modifier-parent btn-icon btn-outline" data-nom="${escapeHtml(s.nom)}" data-tel="${escapeHtml(s.telephone)}">✏️ Modifier</button>
                         <button class="btn-supprimer-parent btn-icon btn-danger" data-nom="${escapeHtml(s.nom)}" data-tel="${escapeHtml(s.telephone)}">🗑 Supprimer</button>
                         <button class="btn-imprimer-parent btn-icon btn-outline" data-nom="${escapeHtml(s.nom)}" data-tel="${escapeHtml(s.telephone)}">🖨️ Imprimer</button>
                     </td>
@@ -592,12 +678,19 @@
         const container = document.getElementById('suiviParentsContainer');
         container.innerHTML = html;
         
-        // Attacher les événements après insertion
+        // Attacher les événements
         document.querySelectorAll('.btn-supprimer-parent').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const nom = btn.getAttribute('data-nom');
                 const tel = btn.getAttribute('data-tel');
                 supprimerParent(nom, tel);
+            });
+        });
+        document.querySelectorAll('.btn-modifier-parent').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const nom = btn.getAttribute('data-nom');
+                const tel = btn.getAttribute('data-tel');
+                modifierParent(nom, tel);
             });
         });
         document.querySelectorAll('.btn-imprimer-parent').forEach(btn => {
