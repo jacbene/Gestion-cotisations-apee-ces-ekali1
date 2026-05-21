@@ -869,62 +869,36 @@
     }
 
 function exportPDF() {
-    const associationName = document.getElementById('associationName')?.innerText || 'APEE CES EKALI 1';
-    const currentDate = new Date().toLocaleDateString('fr-FR');
-    const filtered = filteredPayments;
-    
-    if (filtered.length === 0) {
-        showMessage("Aucune donnée à exporter", "warning");
-        return;
-    }
-    
-    // Construction du tableau HTML
-    let rowsHtml = '';
-    filtered.forEach(p => {
-        const statut = computeStatut(p);
-        const badgeClass = statut === 'solde' ? 'badge-solde' : (statut === 'partiel' ? 'badge-partiel' : 'badge-retard');
-        const badgeText = statut === 'solde' ? 'Soldé' : (statut === 'partiel' ? 'Partiel' : 'En retard');
-        const totalDu = p.students.length * 12500;
-        const reste = totalDu - p.montantVerse;
-        const elevesList = p.students.map(s => `${s.nom} (${s.classe || '?'})`).join(', ');
-        rowsHtml += `
-            <tr>
-                <td>${formatDateFR(p.date)}</td>
-                <td>${escapeHtml(p.parentNom)}<br><small>${escapeHtml(p.telephone)}</small></td>
-                <td>${escapeHtml(elevesList)}</td>
-                <td style="text-align:right">${p.montantVerse.toLocaleString()}</td>
-                <td style="text-align:right">${reste.toLocaleString()}</td>
-                <td>${badgeText}</td>
-                <td>${escapeHtml(p.observations || '-')}</td>
-            </tr>
-        `;
-    });
-    
+    // Ouvrir une nouvelle fenêtre avec le contenu à imprimer
     const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        alert("❌ Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les popups pour ce site.");
-        return;
-    }
+    const content = document.getElementById('printableArea').cloneNode(true);
     
+    // Supprimer les éléments no-print (cases à cocher, boutons, pagination)
+    content.querySelectorAll('.no-print').forEach(el => el.remove());
+    
+    // Récupérer le nom de l'association pour l'en-tête
+    const assocName = document.getElementById('associationName')?.innerText || 'Archives APEE';
+    const currentDate = new Date().toLocaleDateString('fr-FR');
+    
+    // Générer le HTML de la nouvelle fenêtre
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <meta charset="UTF-8">
-            <title>Archives - ${associationName}</title>
+            <title>Archives - ${assocName}</title>
             <style>
                 body {
-                    font-family: Arial, Helvetica, sans-serif;
-                    margin: 1.5cm;
+                    font-family: system-ui, 'Segoe UI', sans-serif;
+                    margin: 1cm;
                     background: white;
                 }
-                .header {
+                .header-print {
                     text-align: center;
-                    margin-bottom: 25px;
+                    margin-bottom: 20px;
                     border-bottom: 2px solid #2e7d32;
                     padding-bottom: 10px;
                 }
-                .header h1 {
+                .header-print h1 {
                     color: #1e4b2e;
                     margin: 0;
                 }
@@ -932,7 +906,7 @@ function exportPDF() {
                     width: 100%;
                     border-collapse: collapse;
                     margin-top: 20px;
-                    font-size: 10pt;
+                    font-size: 12px;
                 }
                 th, td {
                     border: 1px solid #999;
@@ -943,50 +917,42 @@ function exportPDF() {
                 th {
                     background: #eef2f7;
                 }
-                .badge-solde { background: #dcfce7; color: #166534; display: inline-block; padding: 2px 6px; border-radius: 12px; }
-                .badge-partiel { background: #fef3c7; color: #92400e; display: inline-block; padding: 2px 6px; border-radius: 12px; }
-                .badge-retard { background: #fee2e2; color: #991b1b; display: inline-block; padding: 2px 6px; border-radius: 12px; }
+                .badge {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 20px;
+                    font-size: 10px;
+                }
+                .badge-solde { background: #dcfce7; color: #166534; }
+                .badge-partiel { background: #fef3c7; color: #92400e; }
+                .badge-retard { background: #fee2e2; color: #991b1b; }
                 footer {
                     margin-top: 30px;
                     text-align: center;
-                    font-size: 9pt;
+                    font-size: 10px;
                     color: #666;
                 }
                 @media print {
                     body { margin: 0; }
+                    .page-break { page-break-before: always; }
                 }
             </style>
         </head>
         <body>
-            <div class="header">
-                <h1>${escapeHtml(associationName)}</h1>
-                <p>Liste des cotisations - Généré le ${currentDate}</p>
-                <p>Période : ${document.getElementById('filterDateDebut')?.value || 'début'} → ${document.getElementById('filterDateFin')?.value || 'aujourd\'hui'}</p>
+            <div class="header-print">
+                <h1>${assocName}</h1>
+                <p>Archives des cotisations - Généré le ${currentDate}</p>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Parent / Téléphone</th>
-                        <th>Élèves</th>
-                        <th>Montant versé (FCFA)</th>
-                        <th>Reste (FCFA)</th>
-                        <th>Statut</th>
-                        <th>Observations</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHtml}
-                </tbody>
-            </table>
-            <footer>Document généré automatiquement par l'application APEE CES EKALI 1</footer>
+            ${content.innerHTML}
+            <footer>Document généré automatiquement - APEE CES EKALI 1</footer>
         </body>
         </html>
     `);
     printWindow.document.close();
     printWindow.print();
+    // Optionnel : fermer la fenêtre après impression
+    printWindow.onafterprint = () => printWindow.close();
 }
-
 
     // ==================== INITIALISATION ====================
     function init() {
