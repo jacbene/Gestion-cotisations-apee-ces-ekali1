@@ -833,7 +833,7 @@
     document.getElementById('exportBonsBtn').addEventListener('click', () => exportListToCSV(bons, ['num','date','fournisseur','objet','montant','ligne','demandeur','approbateur'], 'bons_commande.csv'));
     document.getElementById('importBonsBtn').addEventListener('click', () => document.getElementById('importBonsFile').click());
     document.getElementById('importBonsFile').addEventListener('change', (e) => {
-        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'bons', { 'Num':'num','Date':'date','Fournisseur':'fournisseur','Objet':'objet','Montant':'montant','Ligne':'ligne','Demandeur':'demandeur','Approbateur':'approbateur' }, 'BC', bons, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'bons', { 'num':'num','date':'date','fournisseur':'fournisseur','objet':'objet','montant':'montant','ligne':'ligne','demandeur':'demandeur','approbateur':'approbateur' }, 'BC', bons, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
         e.target.value = '';
     });
     document.getElementById('printBonsListBtn').addEventListener('click', () => printList('Liste des Bons de commande', ['N°','Date','Fournisseur','Objet','Montant','Ligne','Demandeur','Approbateur'], bons.map(b => [b.num, b.date, b.fournisseur, b.objet, b.montant.toLocaleString()+' FCFA', b.ligne, b.demandeur, b.approbateur])));
@@ -841,7 +841,7 @@
     document.getElementById('exportOpsBtn').addEventListener('click', () => exportListToCSV(ordres, ['num','date','beneficiaire','motif','montant','ligne','ordonnateur','refBon'], 'ordres_paiement.csv'));
     document.getElementById('importOpsBtn').addEventListener('click', () => document.getElementById('importOpsFile').click());
     document.getElementById('importOpsFile').addEventListener('change', (e) => {
-        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'ordres', { 'Num':'num','Date':'date','Bénéficiaire':'beneficiaire','Motif':'motif','Montant':'montant','Ligne':'ligne','Ordonnateur':'ordonnateur','RefBon':'refBon' }, 'OP', ordres, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'ordres', { 'num':'num','date':'date','bénéficiaire':'beneficiaire','motif':'motif','montant':'montant','ligne':'ligne','ordonnateur':'ordonnateur','refBon':'refBon' }, 'OP', ordres, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
         e.target.value = '';
     });
     document.getElementById('printOpsListBtn').addEventListener('click', () => printList('Liste des Ordres de paiement', ['N°','Date','Bénéficiaire','Motif','Montant','Ligne','Ordonnateur','Réf Bon'], ordres.map(o => [o.num, o.date, o.beneficiaire, o.motif, o.montant.toLocaleString()+' FCFA', o.ligne, o.ordonnateur, o.refBon || '-'])));
@@ -849,7 +849,7 @@
     document.getElementById('exportRembBtn').addEventListener('click', () => exportListToCSV(remboursements, ['num','date','demandeur','objet','montant','ligne','justificatif','approbateur'], 'remboursements.csv'));
     document.getElementById('importRembBtn').addEventListener('click', () => document.getElementById('importRembFile').click());
     document.getElementById('importRembFile').addEventListener('change', (e) => {
-        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'remb', { 'Num':'num','Date':'date','Demandeur':'demandeur','Objet':'objet','Montant':'montant','Ligne':'ligne','Justificatif':'justificatif','Approbateur':'approbateur' }, 'REM', remboursements, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'remb', { 'num':'num','date':'date','demandeur':'demandeur','objet':'objet','montant':'montant','ligne':'ligne','justificatif':'justificatif','approbateur':'approbateur' }, 'REM', remboursements, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
         e.target.value = '';
     });
     document.getElementById('printRembListBtn').addEventListener('click', () => printList('Liste des Remboursements', ['N°','Date','Demandeur','Objet','Montant','Ligne','Justificatif','Approbateur'], remboursements.map(r => [r.num, r.date, r.demandeur, r.objet, r.montant.toLocaleString()+' FCFA', r.ligne, r.justificatif || '-', r.approbateur])));
@@ -857,7 +857,7 @@
     document.getElementById('exportRecettesBtn').addEventListener('click', () => exportListToCSV(recettes, ['num','date','nature','source','montant','obs'], 'recettes.csv'));
     document.getElementById('importRecettesBtn').addEventListener('click', () => document.getElementById('importRecettesFile').click());
     document.getElementById('importRecettesFile').addEventListener('change', (e) => {
-        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'recettes', { 'Num':'num','Date':'date','Nature':'nature','Source':'source','Montant':'montant','Obs':'obs' }, 'REC', recettes, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
+        if(e.target.files.length) importCSVToCollection(e.target.files[0], 'recettes', { 'num':'num','date':'date','nature':'nature','source':'source','montant':'montant','obs':'obs' }, 'REC', recettes, () => { saveAllData(); refreshAllTables(); updateComparatif(); });
         e.target.value = '';
     });
     document.getElementById('printRecettesListBtn').addEventListener('click', () => printList('Liste des Recettes', ['N°','Date','Nature','Source','Montant','Observation'], recettes.map(r => [r.num, r.date, r.nature, r.source, r.montant.toLocaleString()+' FCFA', r.obs || '-'])));
