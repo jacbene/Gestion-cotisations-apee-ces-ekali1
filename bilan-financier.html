@@ -445,7 +445,7 @@
             if (moisMap.size === 0) {
                 tableContainer.innerHTML = '<p class="badge">Aucune donnée sur cette période</p>';
             } else {
-                let html = `</table><thead><tr><th>Mois</th><th>Nb paiements</th><th>Montant perçu</th><th>Élèves concernés</th></tr></thead><tbody>`;
+                let html = `<table><thead><tr><th>Mois</th><th>Nb paiements</th><th>Montant perçu</th><th>Élèves concernés</th></tr></thead><tbody>`;
                 for (let [mois, data] of Array.from(moisMap.entries()).sort()) {
                     const [annee, moisNum] = mois.split('-');
                     const moisNom = new Date(annee, moisNum-1, 1).toLocaleString('fr-FR', { month: 'long' });
