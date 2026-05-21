@@ -197,8 +197,15 @@
             padding: 1rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border: 1px solid #e9edf2;
+            position: relative;
         }
         canvas { max-height: 300px; width: 100%; }
+        .no-data-message {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-style: italic;
+        }
         @media (max-width: 700px) {
             body { padding: 16px; }
             th, td { padding: 6px 8px; }
@@ -238,6 +245,7 @@
             <div class="chart-card">
                 <h4 style="margin-bottom: 10px;">📅 Dépenses par mois</h4>
                 <canvas id="monthlyExpenseChart"></canvas>
+                <div id="expenseNoDataMsg" class="no-data-message" style="display:none;">Aucune dépense enregistrée</div>
             </div>
             <div class="chart-card">
                 <h4 style="margin-bottom: 10px;">🥧 Statuts des cotisations</h4>
@@ -246,6 +254,7 @@
             <div class="chart-card">
                 <h4 style="margin-bottom: 10px;">🥧 Dépenses par ligne budgétaire</h4>
                 <canvas id="expenseByLineChart"></canvas>
+                <div id="lineNoDataMsg" class="no-data-message" style="display:none;">Aucune donnée de dépense</div>
             </div>
         </div>
     </div>
@@ -308,6 +317,7 @@
             <button id="exportJSONBtn" class="btn-secondary">📦 Exporter JSON (sauvegarde complète)</button>
             <button id="importJSONBtn" class="btn-secondary">📂 Restaurer depuis JSON</button>
             <button id="deleteSelectedBtn" class="btn-danger">🗑️ Supprimer les paiements sélectionnés</button>
+            <button id="createDemoExpensesBtn" class="btn-outline">📀 Ajouter des dépenses de démonstration</button>
             <input type="file" id="importFileInput" accept=".json" style="display:none;">
         </div>
         <div id="alertContainer"></div>
@@ -353,12 +363,10 @@
     const rowsPerPage = 20;
     let selectedIds = new Set();
 
-    // Données de dépenses
     let allBons = [];
     let allOrdres = [];
     let allRemboursements = [];
 
-    // Graphiques
     let monthlyIncomeChart, monthlyExpenseChart, statusChart, expenseByLineChart;
 
     // ==================== CHARGEMENT PARAMÈTRES ====================
@@ -374,7 +382,6 @@
         }
     }
 
-    // ==================== CHARGEMENT DONNÉES ====================
     function loadPayments() {
         const stored = localStorage.getItem(STORAGE_PAYMENTS_KEY);
         if (stored) {
@@ -389,17 +396,14 @@
     }
 
     function loadExpenses() {
-        // Bons de commande
         const bonsStored = localStorage.getItem(STORAGE_BONS);
         if (bonsStored) {
             try { allBons = JSON.parse(bonsStored); } catch(e) { allBons = []; }
         } else { allBons = []; }
-        // Ordres de paiement
         const ordresStored = localStorage.getItem(STORAGE_ORDRES);
         if (ordresStored) {
             try { allOrdres = JSON.parse(ordresStored); } catch(e) { allOrdres = []; }
         } else { allOrdres = []; }
-        // Remboursements
         const rembStored = localStorage.getItem(STORAGE_REMBOURSEMENTS);
         if (rembStored) {
             try { allRemboursements = JSON.parse(rembStored); } catch(e) { allRemboursements = []; }
@@ -427,7 +431,6 @@
         showMessage("✅ Données sauvegardées", "success");
     }
 
-    // ==================== MESSAGES ====================
     function showMessage(msg, type = "info") {
         const container = document.getElementById('alertContainer');
         const div = document.createElement('div');
@@ -437,7 +440,6 @@
         setTimeout(() => div.remove(), 4000);
     }
 
-    // ==================== FILTRES COTISATIONS ====================
     function getFilters() {
         return {
             parent: document.getElementById('filterParent').value.toLowerCase().trim(),
@@ -482,7 +484,7 @@
 
     function applyFiltersAndRefresh() {
         applyFilters();
-        updateStatsAndCharts(); // Met à jour les stats globales et graphiques
+        updateStatsAndCharts();
     }
 
     function resetFilters() {
@@ -496,16 +498,15 @@
         applyFilters();
     }
 
-    // ==================== STATISTIQUES & GRAPHIQUES GLOBAUX ====================
+    // ==================== STATISTIQUES & GRAPHIQUES (CORRIGÉS) ====================
     function updateStatsAndCharts() {
-        // Statistiques cotisations (toutes)
+        // 1. Statistiques globales (cotisations + dépenses)
         const totalParents = new Set(allPayments.map(p => p.parentNom + '|' + p.telephone)).size;
         const totalEncaisse = allPayments.reduce((s, p) => s + p.montantVerse, 0);
         const totalEleves = allPayments.reduce((s, p) => s + p.students.length, 0);
         const totalAttendu = allPayments.reduce((s, p) => s + (p.students.length * 12500), 0);
         const tauxAtteinte = totalAttendu > 0 ? (totalEncaisse / totalAttendu * 100).toFixed(1) : 0;
 
-        // Dépenses totales
         const totalDepenses = [...allBons, ...allOrdres, ...allRemboursements].reduce((s, d) => s + (d.montant || 0), 0);
         const soldeFinancier = totalEncaisse - totalDepenses;
 
@@ -518,7 +519,7 @@
             <div class="stat-box"><div class="stat-label">🎯 Taux atteinte objectif</div><div class="stat-value">${tauxAtteinte}%</div></div>
         `;
 
-        // Graphique 1 : Encaissements par mois
+        // 2. Graphique : Encaissements par mois
         const incomeMonthly = {};
         allPayments.forEach(p => {
             const date = p.date.split(' ')[0];
@@ -550,40 +551,50 @@
             options: { responsive: true, maintainAspectRatio: true }
         });
 
-        // Graphique 2 : Dépenses par mois (toutes dépenses confondues)
+        // 3. Graphique : Dépenses par mois (avec gestion si aucune donnée)
         const expenseMonthly = {};
         const allExpenses = [...allBons, ...allOrdres, ...allRemboursements];
-        allExpenses.forEach(exp => {
-            const date = exp.date ? exp.date.split(' ')[0] : new Date().toISOString().slice(0,10);
-            const yearMonth = date.substring(0,7);
-            expenseMonthly[yearMonth] = (expenseMonthly[yearMonth] || 0) + (exp.montant || 0);
-        });
-        const expenseMonthsSorted = Object.keys(expenseMonthly).sort();
-        const expenseLabels = expenseMonthsSorted.map(m => {
-            const [y, mo] = m.split('-');
-            return `${mo}/${y}`;
-        });
-        const expenseValues = expenseMonthsSorted.map(m => expenseMonthly[m]);
+        const expenseChartCanvas = document.getElementById('monthlyExpenseChart');
+        const expenseNoDataMsg = document.getElementById('expenseNoDataMsg');
 
-        if (monthlyExpenseChart) monthlyExpenseChart.destroy();
-        const ctxExpense = document.getElementById('monthlyExpenseChart').getContext('2d');
-        monthlyExpenseChart = new Chart(ctxExpense, {
-            type: 'line',
-            data: {
-                labels: expenseLabels,
-                datasets: [{
-                    label: 'Dépenses (FCFA)',
-                    data: expenseValues,
-                    borderColor: '#dc2626',
-                    backgroundColor: 'rgba(220,38,38,0.1)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: true }
-        });
+        if (allExpenses.length === 0) {
+            expenseChartCanvas.style.display = 'none';
+            expenseNoDataMsg.style.display = 'block';
+        } else {
+            expenseChartCanvas.style.display = 'block';
+            expenseNoDataMsg.style.display = 'none';
+            allExpenses.forEach(exp => {
+                const date = exp.date ? exp.date.split(' ')[0] : new Date().toISOString().slice(0,10);
+                const yearMonth = date.substring(0,7);
+                expenseMonthly[yearMonth] = (expenseMonthly[yearMonth] || 0) + (exp.montant || 0);
+            });
+            const expenseMonthsSorted = Object.keys(expenseMonthly).sort();
+            const expenseLabels = expenseMonthsSorted.map(m => {
+                const [y, mo] = m.split('-');
+                return `${mo}/${y}`;
+            });
+            const expenseValues = expenseMonthsSorted.map(m => expenseMonthly[m]);
 
-        // Graphique 3 : Répartition statuts cotisations (vert, jaune, rouge)
+            if (monthlyExpenseChart) monthlyExpenseChart.destroy();
+            const ctxExpense = expenseChartCanvas.getContext('2d');
+            monthlyExpenseChart = new Chart(ctxExpense, {
+                type: 'line',
+                data: {
+                    labels: expenseLabels,
+                    datasets: [{
+                        label: 'Dépenses (FCFA)',
+                        data: expenseValues,
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220,38,38,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        // 4. Graphique : Statuts des cotisations (TOUJOURS trois catégories)
         let soldeCount = 0, partielCount = 0, retardCount = 0;
         allPayments.forEach(p => {
             const s = computeStatut(p);
@@ -591,50 +602,71 @@
             else if (s === 'partiel') partielCount++;
             else retardCount++;
         });
+        // Même si une valeur est 0, on garde l'entrée pour la légende
+        const statusData = [soldeCount, partielCount, retardCount];
+        const statusLabels = ['✅ Soldés', '⚠️ Partiels', '❌ En retard'];
+        const statusColors = ['#2e7d32', '#f59e0b', '#dc2626'];
+
         if (statusChart) statusChart.destroy();
         const ctxStatus = document.getElementById('statusChart').getContext('2d');
         statusChart = new Chart(ctxStatus, {
             type: 'pie',
             data: {
-                labels: ['Soldés', 'Partiels', 'En retard'],
+                labels: statusLabels,
                 datasets: [{
-                    data: [soldeCount, partielCount, retardCount],
-                    backgroundColor: ['#2e7d32', '#f59e0b', '#dc2626'],
+                    data: statusData,
+                    backgroundColor: statusColors,
                     borderWidth: 0
                 }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} parent(s)` } }
+                }
+            }
         });
 
-        // Graphique 4 : Dépenses par ligne budgétaire
-        const lineBudgets = {
-            "Fonctionnement": 0,
-            "Projets éducatifs": 0,
-            "Événements": 0,
-            "Maintenance": 0,
-            "Cantine scolaire": 0
-        };
-        allExpenses.forEach(exp => {
-            const ligne = exp.ligne || 'Fonctionnement';
-            if (lineBudgets.hasOwnProperty(ligne)) lineBudgets[ligne] += (exp.montant || 0);
-            else lineBudgets[ligne] = (exp.montant || 0);
-        });
-        const labels = Object.keys(lineBudgets);
-        const data = labels.map(l => lineBudgets[l]);
-        if (expenseByLineChart) expenseByLineChart.destroy();
-        const ctxLine = document.getElementById('expenseByLineChart').getContext('2d');
-        expenseByLineChart = new Chart(ctxLine, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: ['#1e4b2e', '#2e7d32', '#4caf50', '#8bc34a', '#c8e6c9'],
-                    borderWidth: 0
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-        });
+        // 5. Graphique : Dépenses par ligne budgétaire (gestion si aucune donnée)
+        const lineBudgetCanvas = document.getElementById('expenseByLineChart');
+        const lineNoDataMsg = document.getElementById('lineNoDataMsg');
+        if (allExpenses.length === 0) {
+            lineBudgetCanvas.style.display = 'none';
+            lineNoDataMsg.style.display = 'block';
+        } else {
+            lineBudgetCanvas.style.display = 'block';
+            lineNoDataMsg.style.display = 'none';
+            const lineBudgets = {
+                "Fonctionnement": 0,
+                "Projets éducatifs": 0,
+                "Événements": 0,
+                "Maintenance": 0,
+                "Cantine scolaire": 0
+            };
+            allExpenses.forEach(exp => {
+                const ligne = exp.ligne || 'Fonctionnement';
+                if (lineBudgets.hasOwnProperty(ligne)) lineBudgets[ligne] += (exp.montant || 0);
+                else lineBudgets[ligne] = (exp.montant || 0);
+            });
+            const labelsLine = Object.keys(lineBudgets);
+            const dataLine = labelsLine.map(l => lineBudgets[l]);
+            const vibrantColors = ['#2563eb', '#ea580c', '#7c3aed', '#db2777', '#0891b2'];
+            if (expenseByLineChart) expenseByLineChart.destroy();
+            const ctxLine = lineBudgetCanvas.getContext('2d');
+            expenseByLineChart = new Chart(ctxLine, {
+                type: 'pie',
+                data: {
+                    labels: labelsLine,
+                    datasets: [{
+                        data: dataLine,
+                        backgroundColor: vibrantColors.slice(0, labelsLine.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
     }
 
     function updateAllVisuals() {
@@ -750,7 +782,7 @@
         renderTable();
     }
 
-    // ==================== EXPORTS / IMPORT / SUPPRESSION ====================
+    // ==================== EXPORTS, IMPORT, SUPPRESSION, PDF ====================
     function exportCSV() {
         if (filteredPayments.length === 0) {
             showMessage("Aucune donnée à exporter", "warning");
@@ -849,12 +881,33 @@
         showMessage("Génération PDF en cours...", "info");
     }
 
+    // Données de démonstration pour dépenses (création de bons, ordres, remboursements fictifs)
+    function createDemoExpenses() {
+        const today = new Date().toISOString().slice(0,10);
+        const demoBons = [
+            { id: 'demo1', num: 'BC-DEMO-001', date: '2025-09-15', fournisseur: 'Fourniscool', objet: 'Achat matériel', montant: 50000, ligne: 'Fonctionnement', demandeur: 'Trésorier', approbateur: 'Président' },
+            { id: 'demo2', num: 'BC-DEMO-002', date: '2025-10-10', fournisseur: 'EduPlus', objet: 'Livres scolaires', montant: 75000, ligne: 'Projets éducatifs', demandeur: 'Secrétaire', approbateur: 'Président' }
+        ];
+        const demoOrdres = [
+            { id: 'demo3', num: 'OP-DEMO-001', date: '2025-09-20', beneficiaire: 'Fourniscool', motif: 'Paiement matériel', montant: 50000, ligne: 'Fonctionnement', ordonnateur: 'Trésorier', refBon: 'BC-DEMO-001' },
+            { id: 'demo4', num: 'OP-DEMO-002', date: '2025-10-15', beneficiaire: 'EduPlus', motif: 'Paiement livres', montant: 75000, ligne: 'Projets éducatifs', ordonnateur: 'Trésorier', refBon: 'BC-DEMO-002' }
+        ];
+        const demoRemb = [
+            { id: 'demo5', num: 'REM-DEMO-001', date: '2025-09-25', demandeur: 'Mme Manga', objet: 'Achat urgent fournitures', montant: 25000, ligne: 'Événements', justificatif: 'Facture n°123', approbateur: 'Président' }
+        ];
+        localStorage.setItem(STORAGE_BONS, JSON.stringify(demoBons));
+        localStorage.setItem(STORAGE_ORDRES, JSON.stringify(demoOrdres));
+        localStorage.setItem(STORAGE_REMBOURSEMENTS, JSON.stringify(demoRemb));
+        showMessage("✅ Données de démonstration pour dépenses ajoutées. Rechargez la page.", "success");
+        setTimeout(() => location.reload(), 1500);
+    }
+
     // ==================== INITIALISATION ====================
     function init() {
         loadAssociationName();
         loadPayments();
         loadExpenses();
-        applyFiltersAndRefresh(); // Affiche tableau + graphiques
+        applyFiltersAndRefresh();
         document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
         document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
         document.getElementById('exportCSVBtn').addEventListener('click', exportCSV);
@@ -874,6 +927,7 @@
             else displayedIds.forEach(id => selectedIds.delete(id));
             renderTable();
         });
+        document.getElementById('createDemoExpensesBtn').addEventListener('click', createDemoExpenses);
     }
 
     window.addEventListener('load', init);
